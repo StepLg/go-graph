@@ -18,7 +18,19 @@ func NewUndirectedGraphMatrix(size uint) *UndirectedGraphMatrix {
 	g.size = size
 	g.nodeIds = make(map[NodeId]uint)
 	return g
-} 
+}
+
+// Maximum graph capacity
+//
+// Maximum nodes count graph can handle
+func (g *UndirectedGraphMatrix) GetCapacity() int {
+	return int(g.size)
+}
+
+// Current nodes count in graph
+func (g *UndirectedGraphMatrix) GetSize() int {
+	return int(len(g.nodeIds))
+}
 
 // Adding new edge to graph
 func (g *UndirectedGraphMatrix) AddEdge(node1, node2 NodeId) (ConnectionId, erx.Error) {
@@ -194,5 +206,6 @@ func (g *UndirectedGraphMatrix) getConnectionId(node1, node2 NodeId, create bool
 	}
 	
 	// id from upper triangle matrix, stored in vector
-	return ConnectionId((2*(g.size-1)-id1)*(id1+1)/2 + (id2-id1-1)) , nil	
+	connId := ConnectionId(id1*g.size + id2 - 1 - id1*(id1+1)/2)
+	return connId , nil	
 }
