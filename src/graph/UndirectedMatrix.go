@@ -82,7 +82,7 @@ func (g *UndirectedGraphMatrix) RemoveEdge(node1, node2 NodeId) erx.Error {
 }
 
 // Getting all nodes, connected to given one
-func (g *UndirectedGraphMatrix) GetConnected(node NodeId) (Nodes, erx.Error) {
+func (g *UndirectedGraphMatrix) GetNeighbours(node NodeId) (Nodes, erx.Error) {
 	var err erx.Error
 	if _, ok := g.nodeIds[node]; !ok {
 		err = erx.NewError("Unknown node.")

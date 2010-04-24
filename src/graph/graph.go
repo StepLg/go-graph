@@ -52,6 +52,15 @@ type DirectedArrowsIterable interface {
 
 // Interface representing undirected graph
 type UndirectedGraph interface {
+	// Adding single node to graph
+	AddNode(node NodeId) erx.Error
+
+	// Nodes count in graph
+	NodesCnt() int
+
+	// Arrows count in graph
+	ArrowsCnt() int
+
 	// Adding new edge to graph
 	AddEdge(node1, node2 NodeId) (erx.Error)
 	
@@ -64,7 +73,9 @@ type UndirectedGraph interface {
 	CheckEdge(node1, node2 NodeId) (bool, erx.Error)
 	
 	// Getting all nodes, connected to given one
-	GetConnected(node NodeId) (Nodes, erx.Error)
+	GetNeighbours(node NodeId) (Nodes, erx.Error)
+	
+	EdgesIter() <-chan Arrow
 }
 
 func init() {
