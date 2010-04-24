@@ -43,14 +43,10 @@ func NodesBinarySearch(nodes Nodes, n NodeId) bool {
 func Test_MatrixUndirected_Edges(t *testing.T) {
 	gr := NewUndirectedGraphMatrix(5)
 	var err erx.Error
-	_, err = gr.AddEdge(1, 2)
-	CheckErx(t, err)
-	_, err = gr.AddEdge(2, 3)
-	CheckErx(t, err)
-	_, err = gr.AddEdge(2, 4)
-	CheckErx(t, err)
-	_, err = gr.AddEdge(1, 4)
-	CheckErx(t, err)
+	CheckErx(t, gr.AddEdge(1, 2))
+	CheckErx(t, gr.AddEdge(2, 3))
+	CheckErx(t, gr.AddEdge(2, 4))
+	CheckErx(t, gr.AddEdge(1, 4))
 	
 	var conn bool
 	conn, err = gr.CheckEdgeBetween(1, 2)

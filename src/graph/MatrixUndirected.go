@@ -4,19 +4,22 @@ import "erx"
 
 type UndirectedGraphMatrix struct {
 	nodes []bool
-	size uint
-	nodeIds map[NodeId]uint // internal node ids, used in nodes array
+	size int
+	nodeIds map[NodeId]int // internal node ids, used in nodes array
 }
 
 // Creating new undirected graph with matrix storage.
 //
 // size means maximum number of nodes, used in graph. Trying to add
 // more nodes, than this size will cause an error. 
-func NewUndirectedGraphMatrix(size uint) *UndirectedGraphMatrix {
+func NewUndirectedGraphMatrix(size int) *UndirectedGraphMatrix {
+	if size<=0 {
+		return nil
+	}
 	g := new(UndirectedGraphMatrix)
 	g.nodes = make([]bool, size*(size-1)/2)
 	g.size = size
-	g.nodeIds = make(map[NodeId]uint)
+	g.nodeIds = make(map[NodeId]int)
 	return g
 }
 
@@ -33,9 +36,8 @@ func (g *UndirectedGraphMatrix) GetSize() int {
 }
 
 // Adding new edge to graph
-func (g *UndirectedGraphMatrix) AddEdge(node1, node2 NodeId) (ConnectionId, erx.Error) {
-	var conn ConnectionId
-	var err erx.Error
+func (g *UndirectedGraphMatrix) AddEdge(node1, node2 NodeId) (err erx.Error) {
+	var conn int
 	conn, err = g.getConnectionId(node1, node2, true)
 	if nil!=err {
 		goto Error
@@ -48,18 +50,18 @@ func (g *UndirectedGraphMatrix) AddEdge(node1, node2 NodeId) (ConnectionId, erx.
 	}
 	g.nodes[conn] = true
 	
-	return conn, nil
+	return
 	
 	Error:
 	err = erx.NewSequent("Can't add new edge to graph.", err)
 	err.AddV("from node", node1)
 	err.AddV("to node", node2)
-	return 0, err
+	return
 }
 
 // Removing edge, connecting node1 and node2
 func (g *UndirectedGraphMatrix) RemoveEdgeBetween(node1, node2 NodeId) erx.Error {
-	var conn ConnectionId
+	var conn int
 	var err erx.Error
 	conn, err = g.getConnectionId(node1, node2, false)
 	if nil!=err {
@@ -80,7 +82,7 @@ func (g *UndirectedGraphMatrix) RemoveEdgeBetween(node1, node2 NodeId) erx.Error
 }
 
 // Removing edge with specific id
-func (g *UndirectedGraphMatrix) RemoveEdge(id ConnectionId) erx.Error {
+func (g *UndirectedGraphMatrix) RemoveEdge(id int) erx.Error {
 	var err erx.Error
 	if int(id) >= len(g.nodes) {
 		err = erx.NewError("Edge id out of bounds.")
@@ -110,7 +112,7 @@ func (g *UndirectedGraphMatrix) GetConnected(node NodeId) (Nodes, erx.Error) {
 	result := make([]NodeId, g.size)
 	ind := 0
 	{
-		var connId ConnectionId
+		var connId int
 		for aNode, _ := range g.nodeIds {
 			if aNode==node {
 				continue
@@ -136,7 +138,7 @@ func (g *UndirectedGraphMatrix) GetConnected(node NodeId) (Nodes, erx.Error) {
 }
 
 func (g *UndirectedGraphMatrix) CheckEdgeBetween(node1, node2 NodeId) (bool, erx.Error) {
-	var conn ConnectionId
+	var conn int
 	var err erx.Error
 	conn, err = g.getConnectionId(node1, node2, false)
 	if nil!=err {
@@ -152,8 +154,8 @@ func (g *UndirectedGraphMatrix) CheckEdgeBetween(node1, node2 NodeId) (bool, erx
 	
 }
 
-func (g *UndirectedGraphMatrix) getConnectionId(node1, node2 NodeId, create bool) (ConnectionId, erx.Error) {
-	var id1, id2 uint
+func (g *UndirectedGraphMatrix) getConnectionId(node1, node2 NodeId, create bool) (int, erx.Error) {
+	var id1, id2 int
 	node1Exist := false
 	node2Exist := false
 	id1, node1Exist = g.nodeIds[node1]
@@ -176,11 +178,11 @@ func (g *UndirectedGraphMatrix) getConnectionId(node1, node2 NodeId, create bool
 			}
 		} else if !node1Exist || !node2Exist {
 			if node1Exist && node2Exist {
-				if int(g.size) - len(g.nodeIds) < 2 {
+				if g.size - len(g.nodeIds) < 2 {
 					err.AddE(erx.NewError("Not enough space to create two new nodes."))
 				}
 			} else {
-				if int(g.size) - len(g.nodeIds) < 1 {
+				if g.size - len(g.nodeIds) < 1 {
 					err.AddE(erx.NewError("Not enough space to create new node."))
 				}
 			}
@@ -191,12 +193,12 @@ func (g *UndirectedGraphMatrix) getConnectionId(node1, node2 NodeId, create bool
 	}
 	
 	if !node1Exist {
-		id1 = uint(len(g.nodeIds))
+		id1 = int(len(g.nodeIds))
 		g.nodeIds[node1] = id1
 	}
 
 	if !node2Exist {
-		id2 = uint(len(g.nodeIds))
+		id2 = int(len(g.nodeIds))
 		g.nodeIds[node2] = id2
 	}
 	
@@ -206,6 +208,6 @@ func (g *UndirectedGraphMatrix) getConnectionId(node1, node2 NodeId, create bool
 	}
 	
 	// id from upper triangle matrix, stored in vector
-	connId := ConnectionId(id1*g.size + id2 - 1 - id1*(id1+1)/2)
+	connId := id1*g.size + id2 - 1 - id1*(id1+1)/2
 	return connId , nil	
 }
