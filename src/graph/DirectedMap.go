@@ -5,11 +5,6 @@ import (
 	. "container/vector"
 )
 
-type nodes_pair_t struct {
-	From NodeId
-	To NodeId
-}
-
 type DirectedMap struct {
 	directArrows map[NodeId]map[NodeId]bool
 	reversedArrows map[NodeId]map[NodeId]bool
