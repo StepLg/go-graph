@@ -37,6 +37,8 @@ type DirectedGraph interface {
 	//
 	// node1 and node2 must exist in graph or error will be returned
 	CheckArrow(node1, node2 NodeId) (bool, erx.Error)
+
+	ArrowsIter() <-chan Arrow
 }
 
 type Arrow struct {

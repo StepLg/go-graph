@@ -207,3 +207,16 @@ func (g *DirectedMap) CheckArrow(from, to NodeId) (isExist bool, err erx.Error) 
 	err.AddV("to", to)
 	return
 }
+
+func (g *DirectedMap) ArrowsIter() <-chan Arrow {
+	ch := make(chan Arrow)
+	go func() {
+		for from, connectedNodes := range g.directArrows {
+			for to, _ := range connectedNodes {
+				ch <- Arrow{from, to}
+			}
+		}
+		close(ch)
+	}()
+	return ch
+}
