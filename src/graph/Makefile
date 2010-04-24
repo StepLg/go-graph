@@ -4,7 +4,7 @@ TARG=graph
 GOFILES=               \
 	graph.go           \
 	DirectedMap.go     \
-	MatrixUndirected.go\
+	UndirectedMatrix.go\
 	ConnectionsIterators.go
  
 include $(GOROOT)/src/Make.pkg
