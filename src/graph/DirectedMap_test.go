@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"erx"
 	"testing"
 	"github.com/orfjackal/gospec/src/gospec"
 	. "github.com/orfjackal/gospec/src/gospec"
@@ -61,8 +62,14 @@ func DirectedMapSpec(c gospec.Context) {
 	c.Specify("New arrow in empty graph", func() {
 		nodeId := NodeId(1)
 		anotherNodeId := NodeId(2)
-		err := gr.AddArrow(nodeId, anotherNodeId)
+		var err erx.Error
+		err = gr.AddArrow(nodeId, anotherNodeId)
 		c.Expect(err, IsNil)
+		var arrowExists bool
+		arrowExists, err = gr.CheckArrow(nodeId, anotherNodeId)
+		c.Expect(err, IsNil)
+		c.Expect(arrowExists, Equals, true)
+		
 		
 		c.Specify("changing nodes count", func() {
 			c.Expect(gr.NodesCnt(), Equals, 2)

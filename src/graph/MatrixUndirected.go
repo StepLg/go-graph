@@ -60,7 +60,7 @@ func (g *UndirectedGraphMatrix) AddEdge(node1, node2 NodeId) (err erx.Error) {
 }
 
 // Removing edge, connecting node1 and node2
-func (g *UndirectedGraphMatrix) RemoveEdgeBetween(node1, node2 NodeId) erx.Error {
+func (g *UndirectedGraphMatrix) RemoveEdge(node1, node2 NodeId) erx.Error {
 	var conn int
 	var err erx.Error
 	conn, err = g.getConnectionId(node1, node2, false)
@@ -78,26 +78,6 @@ func (g *UndirectedGraphMatrix) RemoveEdgeBetween(node1, node2 NodeId) erx.Error
 	err = erx.NewSequent("Can't remove edge from graph.", err)
 	err.AddV("from node", node1)
 	err.AddV("to node", node2)
-	return err
-}
-
-// Removing edge with specific id
-func (g *UndirectedGraphMatrix) RemoveEdge(id int) erx.Error {
-	var err erx.Error
-	if int(id) >= len(g.nodes) {
-		err = erx.NewError("Edge id out of bounds.")
-		err.AddV("total edges count", len(g.nodes))
-		goto Error
-	}
-	if !g.nodes[id] {
-		err = erx.NewError("Edge doesn't exist.")
-		goto Error
-	}
-	g.nodes[id] = false
-	
-	Error:
-	err = erx.NewSequent("Can't remove edge from graph.", err)
-	err.AddV("edge id", id)
 	return err
 }
 
@@ -137,7 +117,7 @@ func (g *UndirectedGraphMatrix) GetConnected(node NodeId) (Nodes, erx.Error) {
 	return nil, err
 }
 
-func (g *UndirectedGraphMatrix) CheckEdgeBetween(node1, node2 NodeId) (bool, erx.Error) {
+func (g *UndirectedGraphMatrix) CheckEdge(node1, node2 NodeId) (bool, erx.Error) {
 	var conn int
 	var err erx.Error
 	conn, err = g.getConnectionId(node1, node2, false)

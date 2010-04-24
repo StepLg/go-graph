@@ -19,7 +19,7 @@ type DirectedGraph interface {
 	AddArrow(from, to NodeId) erx.Error
 	
 	// Removing arrow between 'from' and 'to' nodes
-	RemoveArrowBetween(from, to NodeId) erx.Error
+	RemoveArrow(from, to NodeId) erx.Error
 	
 	// Getting all graph sources.
 	GetSources() (Nodes, erx.Error)
@@ -32,6 +32,20 @@ type DirectedGraph interface {
 	
 	// Getting node predecessors
 	GetPredecessors(node NodeId) (Nodes, erx.Error)
+	
+	// Checking arrow existance between node1 and node2
+	//
+	// node1 and node2 must exist in graph or error will be returned
+	CheckArrow(node1, node2 NodeId) (bool, erx.Error)
+}
+
+type Arrow struct {
+	From NodeId
+	To   NodeId
+}
+
+type DirectedArrowsIterable interface {
+	ArrowsIter() <-chan Arrow
 }
 
 // Interface representing undirected graph
@@ -40,23 +54,16 @@ type UndirectedGraph interface {
 	AddEdge(node1, node2 NodeId) (erx.Error)
 	
 	// Removing edge, connecting node1 and node2
-	RemoveEdgeBetween(node1, node2 NodeId) erx.Error
+	RemoveEdge(node1, node2 NodeId) erx.Error
 	
 	// Checking edge existance between node1 and node2
 	//
 	// node1 and node2 must exist in graph or error will be returned
-	CheckEdgeBetween(node1, node2 NodeId) (bool, erx.Error)
+	CheckEdge(node1, node2 NodeId) (bool, erx.Error)
 	
 	// Getting all nodes, connected to given one
 	GetConnected(node NodeId) (Nodes, erx.Error)
 }
-
-/*
-// Nodes iterator over the graph
-type NodesIterator interface {
-	Iter() <- NodeId
-}
-*/
 
 func init() {
 	// adding to erx directory prefix to cut from file names

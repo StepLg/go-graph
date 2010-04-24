@@ -79,11 +79,12 @@ func (g *DirectedMap) AddArrow(from, to NodeId) (err erx.Error) {
 	return
 }
 
-// Removing arrow between 'from' and 'to' nodes
-func (g *DirectedMap) RemoveArrowBetween(from, to NodeId) (err erx.Error) {
+// Removing arrow  'from' and 'to' nodes
+func (g *DirectedMap) RemoveArrow(from, to NodeId) (err erx.Error) {
 	connectedNodes, ok := g.directArrows[from]
 	if !ok {
 		err = erx.NewError("From node doesn't exist.")
+		goto Error
 	}
 	
 	if _, ok = connectedNodes[to]; ok {
@@ -182,5 +183,27 @@ func (g *DirectedMap) GetPredecessors(node NodeId) (predecessors Nodes, err erx.
 		err.AddV("node", node)
 	}
 	
+	return
+}
+
+func (g *DirectedMap) CheckArrow(from, to NodeId) (isExist bool, err erx.Error) {
+	connectedNodes, ok := g.directArrows[from]
+	if !ok {
+		err = erx.NewError("From node doesn't exist.")
+		goto Error
+	}
+	
+	if _, ok = g.reversedArrows[to]; !ok {
+		err = erx.NewError("To node doesn't exist.")
+		goto Error
+	}
+	
+	_, isExist = connectedNodes[to]
+	return
+	
+	Error:
+	err = erx.NewSequent("Can't check arrow existance.", err)
+	err.AddV("from", from)
+	err.AddV("to", to)
 	return
 }
