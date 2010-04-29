@@ -1,7 +1,7 @@
 package graph
 
 import (
-	"erx"
+	"github.com/StepLg/go-erx/src/erx"
 )
 
 type UndirectedMap struct {
@@ -54,30 +54,34 @@ func (g *UndirectedMap) NodesIter() <-chan NodeId {
 // UndirectedGraphNodesWriter
 
 // Adding single node to graph
-func (g *UndirectedMap) AddNode(node NodeId) erx.Error {
-	var err erx.Error
+func (g *UndirectedMap) AddNode(node NodeId) {
+	makeError := func(err interface{}) (res erx.Error) {
+		res = erx.NewSequentLevel("Add node to graph.", err, 1)
+		res.AddV("node id", node)
+		return
+	}
+
 	if _, ok := g.edges[node]; ok {
-		err = erx.NewError("Node already exists.")
-		goto Error
+		panic(makeError(erx.NewError("Node already exists.")))
 	}
 	
 	g.edges[node] = make(map[NodeId]bool)
-	
-	return nil
-	Error:
-	err = erx.NewSequent("Can't add single node to undirected graph.", err)
-	err.AddV("node id", node)
-	return err
+
+	return	
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // GraphNodesRemover
 
-func (g *UndirectedMap) RemoveNode(node NodeId) erx.Error {
-	var err erx.Error
+func (g *UndirectedMap) RemoveNode(node NodeId) {
+	makeError := func(err interface{}) (res erx.Error) {
+		res = erx.NewSequentLevel("Remove node from graph.", err, 1)
+		res.AddV("node id", node)
+		return
+	}
+
 	if _, ok := g.edges[node]; !ok {
-		err = erx.NewError("Node doesn't exist.")
-		goto Error
+		panic(makeError(erx.NewError("Node doesn't exist.")))
 	}
 	
 	g.edges[node] = nil, false
@@ -85,11 +89,7 @@ func (g *UndirectedMap) RemoveNode(node NodeId) erx.Error {
 		connectedNodes[node] = false, false
 	}
 	
-	return nil
-	Error:
-	err = erx.NewSequent("Can't remove node from undirected graph.", err)
-	err.AddV("node id", node)
-	return err
+	return
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -102,24 +102,25 @@ func (g *UndirectedMap) touchNode(node NodeId) {
 }
 
 // Adding arrow to graph.
-func (g *UndirectedMap) AddEdge(from, to NodeId) (err erx.Error) {
+func (g *UndirectedMap) AddEdge(from, to NodeId) {
+	makeError := func(err interface{}) (res erx.Error) {
+		res = erx.NewSequentLevel("Add edge to graph.", err, 1)
+		res.AddV("node 1", from)
+		res.AddV("node 2", to)
+		return
+	}
+
 	g.touchNode(from)
 	g.touchNode(to)
 	
 	if direction, ok := g.edges[from][to]; ok && direction {
-		err = erx.NewError("Duplicate edge.")
-		goto Error
+		panic(makeError(erx.NewError("Duplicate arrow.")))
 	}
 	
 	g.edges[from][to] = true
 	g.edges[to][from] = true
 	g.edgesCnt++	
-	return
-	
-	Error:
-	err = erx.NewSequent("Can't add edge.", err)
-	err.AddV("from", from)
-	err.AddV("to", to)
+
 	return
 }
 
@@ -127,28 +128,27 @@ func (g *UndirectedMap) AddEdge(from, to NodeId) (err erx.Error) {
 // UndirectedGraphEdgesRemover
 
 // Removing arrow  'from' and 'to' nodes
-func (g *UndirectedMap) RemoveEdge(from, to NodeId) (err erx.Error) {
+func (g *UndirectedMap) RemoveEdge(from, to NodeId) {
+	makeError := func(err interface{}) (res erx.Error) {
+		res = erx.NewSequentLevel("Remove edge from graph.", err, 1)
+		res.AddV("node 1", from)
+		res.AddV("node 2", to)
+		return
+	}
 	connectedNodes, ok := g.edges[from]
 	if !ok {
-		err = erx.NewError("From node doesn't exist.")
-		goto Error
+		panic(makeError(erx.NewError("First node doesn't exists")))
 	}
 	
 	if _, ok = connectedNodes[to]; ok {
-		err = erx.NewError("To node doesn't exist.")
-		goto Error
+		panic(makeError(erx.NewError("Second node doesn't exists")))
 	}
 	
 	g.edges[from][to] = false, false
 	g.edges[to][from] = false, false
 	g.edgesCnt--
-	return nil
-	
-	Error:
-	err = erx.NewSequent("Can't remove arrow.", err)
-	err.AddV("from", from)
-	err.AddV("to", to)
-	return err
+
+	return
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -163,7 +163,13 @@ func (g *UndirectedMap) EdgesCnt() int {
 }
 
 // Getting node predecessors
-func (g *UndirectedMap) GetNeighbours(node NodeId) (connected Nodes, err erx.Error) {
+func (g *UndirectedMap) GetNeighbours(node NodeId) (connected Nodes) {
+	makeError := func(err interface{}) (res erx.Error) {
+		res = erx.NewSequentLevel("Get node neighbours.", err, 1)
+		res.AddV("node id", node)
+		return
+	}
+
 	if connectedMap, ok := g.edges[node]; ok {
 		connected = make(Nodes, len(connectedMap))
 		id := 0
@@ -172,35 +178,30 @@ func (g *UndirectedMap) GetNeighbours(node NodeId) (connected Nodes, err erx.Err
 			id++
 		}
 	} else {
-		err = erx.NewError("Node doesn't exists.")
-	}
-	
-	if err!=nil {
-		err = erx.NewSequent("Can't get node neighbours.", err)
-		err.AddV("node", node)
+		panic(makeError(erx.NewError("Node doesn't exists.")))
 	}
 	
 	return
 }
 
-func (g *UndirectedMap) CheckEdge(from, to NodeId) (isExist bool, err erx.Error) {
+func (g *UndirectedMap) CheckEdge(from, to NodeId) (isExist bool) {
+	makeError := func(err interface{}) (res erx.Error) {
+		res = erx.NewSequentLevel("Check edge existance in graph.", err, 1)
+		res.AddV("node 1", from)
+		res.AddV("node 2", to)
+		return
+	}
+
 	connectedNodes, ok := g.edges[from]
 	if !ok {
-		err = erx.NewError("From node doesn't exist.")
-		goto Error
+		panic(makeError(erx.NewError("Fist node doesn't exist.")))
 	}
 	
 	if _, ok = g.edges[to]; !ok {
-		err = erx.NewError("To node doesn't exist.")
-		goto Error
+		panic(makeError(erx.NewError("Second node doesn't exist.")))
 	}
 	
 	_, isExist = connectedNodes[to]
-	return
 	
-	Error:
-	err = erx.NewSequent("Can't check arrow existance.", err)
-	err.AddV("from", from)
-	err.AddV("to", to)
 	return
 }

@@ -1,7 +1,6 @@
 package graph
 
 import (
-	"erx"
 	. "exp/iterable"
 )
 
@@ -23,20 +22,12 @@ func ArrowsToGenericIter(connIter ConnectionsIterable) Iterable {
 	return connectionsIterable{connIter}
 }
 
-func CopyDirectedGraph(connIter ConnectionsIterable, gr DirectedGraphArcsWriter) erx.Error {
-	wheel := erx.NewError("Can't copy directed graph")
+func CopyDirectedGraph(connIter ConnectionsIterable, gr DirectedGraphArcsWriter) {
+	// wheel := erx.NewError("Can't copy directed graph")
 	for arrow := range connIter.ConnectionsIter() {
-		err := gr.AddArc(arrow.Tail, arrow.Head)
-		if err!=nil {
-			wheel.AddE(err)
-		}
+		gr.AddArc(arrow.Tail, arrow.Head)
 	}
-	
-	if wheel.Errors().Len()>0 {
-		return wheel
-	}
-	
-	return nil
+	return
 }
 
 func BuildDirectedGraph(gr DirectedGraph, connIterable ConnectionsIterable , isCorrectOrder func(Connection) bool) {

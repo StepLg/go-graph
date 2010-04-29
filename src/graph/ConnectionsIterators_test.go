@@ -16,8 +16,8 @@ func DirectedGraphEquals(actual interface{}, expected interface{}) (match bool, 
 			match = true
 			missed := ""
 			for arrow := range eGr.ConnectionsIter() {
-				isExist, err := aGr.CheckArc(arrow.Tail, arrow.Head)
-				if err!=nil || !isExist {
+				isExist := aGr.CheckArc(arrow.Tail, arrow.Head)
+				if !isExist {
 					match = false
 					if missed != "" {
 						missed += ", "
@@ -28,8 +28,8 @@ func DirectedGraphEquals(actual interface{}, expected interface{}) (match bool, 
 			
 			phantom := ""
 			for arrow := range aGr.ConnectionsIter() {
-				isExist, err := eGr.CheckArc(arrow.Tail, arrow.Head)
-				if err!=nil || !isExist {
+				isExist := eGr.CheckArc(arrow.Tail, arrow.Head)
+				if !isExist {
 					match = false
 					if phantom!="" {
 						phantom += ", "
@@ -65,7 +65,7 @@ func ArrowsIteratorSpec(c gospec.Context) {
 	
 	c.Specify("Copy empty graph", func() {
 		gr1 := NewDirectedMap()
-		c.Expect(CopyDirectedGraph(gr, gr1), IsNil)
+		CopyDirectedGraph(gr, gr1)
 		c.Expect(gr1, DirectedGraphEquals, gr)
 	})
 	
@@ -76,7 +76,7 @@ func ArrowsIteratorSpec(c gospec.Context) {
 		gr.AddArc(1, 4)
 		gr.AddArc(5, 1)
 
-		c.Expect(CopyDirectedGraph(gr, gr1), IsNil)
+		CopyDirectedGraph(gr, gr1)
 		c.Expect(gr1, DirectedGraphEquals, gr)
 	})
 }

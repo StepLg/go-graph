@@ -1,11 +1,5 @@
 package graph
 
-import (
-	"erx"
-	"runtime"
-	"strings"
-)
-
 type NodeId uint
 
 type Nodes []NodeId
@@ -25,7 +19,7 @@ type NodesIterable interface {
 
 type GraphNodesWriter interface {
 	// Adding single node to graph
-	AddNode(node NodeId) erx.Error
+	AddNode(node NodeId)
 }
 
 type GraphNodesReader interface {
@@ -35,17 +29,17 @@ type GraphNodesReader interface {
 
 type GraphNodesRemover interface {
 	// Removing node from graph
-	RemoveNode(node NodeId) erx.Error
+	RemoveNode(node NodeId)
 }
 
 type DirectedGraphArcsWriter interface {
 	// Adding directed arc to graph
-	AddArc(from, to NodeId) erx.Error
+	AddArc(from, to NodeId)
 }
 
 type DirectedGraphArcsRemover interface {
 	// Removding directed arc
-	RemoveArc(from, to NodeId) erx.Error
+	RemoveArc(from, to NodeId)
 }
 
 type DirectedGraphReader interface {
@@ -53,21 +47,21 @@ type DirectedGraphReader interface {
 	ArcsCnt() int
 
 	// Getting all graph sources.
-	GetSources() (Nodes, erx.Error)
+	GetSources() Nodes
 	
 	// Getting all graph sinks.
-	GetSinks() (Nodes, erx.Error)
+	GetSinks() Nodes
 	
 	// Getting node accessors
-	GetAccessors(node NodeId) (Nodes, erx.Error)
+	GetAccessors(node NodeId) Nodes
 	
 	// Getting node predecessors
-	GetPredecessors(node NodeId) (Nodes, erx.Error)
+	GetPredecessors(node NodeId) Nodes
 	
 	// Checking arrow existance between node1 and node2
 	//
 	// node1 and node2 must exist in graph or error will be returned
-	CheckArc(node1, node2 NodeId) (bool, erx.Error)
+	CheckArc(node1, node2 NodeId) bool
 	
 }
 
@@ -91,20 +85,20 @@ type UndirectedGraphReader interface {
 	// Checking edge existance between node1 and node2
 	//
 	// node1 and node2 must exist in graph or error will be returned
-	CheckEdge(node1, node2 NodeId) (bool, erx.Error)
+	CheckEdge(node1, node2 NodeId) bool
 
 	// Getting all nodes, connected to given one
-	GetNeighbours(node NodeId) (Nodes, erx.Error)
+	GetNeighbours(node NodeId) Nodes
 }
 
 type UndirectedGraphEdgesWriter interface {
 	// Adding new edge to graph
-	AddEdge(node1, node2 NodeId) (erx.Error)	
+	AddEdge(node1, node2 NodeId)	
 }
 
 type UndirectedGraphEdgesRemover interface {
 	// Removing edge, connecting node1 and node2
-	RemoveEdge(node1, node2 NodeId) erx.Error
+	RemoveEdge(node1, node2 NodeId)
 }
 
 // Interface representing undirected graph
@@ -142,12 +136,4 @@ type MixedGraph interface {
 	
 	// Iterate over only directed arcs
 	ArcsIter() ConnectionsIterable
-}
-
-func init() {
-	// adding to erx directory prefix to cut from file names
-	_, file, _, _ := runtime.Caller(0)
-	dirName := file[0:strings.LastIndex(file, "/")]
-	prevDirName := dirName[0:strings.LastIndex(dirName, "/")+1]
-	erx.AddPathCut(prevDirName)
 }

@@ -1,7 +1,7 @@
 package graph
 
 import (
-	"erx"
+	"github.com/StepLg/go-erx/src/erx"
 	. "container/vector"
 )
 
@@ -60,33 +60,37 @@ func (g *DirectedMap) NodesIter() <-chan NodeId {
 // GraphNodesWriter
 
 // Adding single node to graph
-func (g *DirectedMap) AddNode(node NodeId) erx.Error {
-	var err erx.Error
+func (g *DirectedMap) AddNode(node NodeId) {
+	makeError := func(err interface{}) (res erx.Error) {
+		res = erx.NewSequentLevel("Add node to graph.", err, 1)
+		res.AddV("node id", node)
+		return
+	}
+
 	if _, ok := g.directArcs[node]; ok {
-		err = erx.NewError("Node already exists.")
-		goto Error
+		panic(makeError(erx.NewError("Node already exists.")))
 	}
 	
 	g.directArcs[node] = make(map[NodeId]bool)
 	g.reversedArcs[node] = make(map[NodeId]bool)
-	
-	return nil
-	Error:
-	err = erx.NewSequent("", err)
-	err.AddV("node id", node)
-	return err
+
+	return	
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // GraphNodesRemover
 
-func (g *DirectedMap) RemoveNode(node NodeId) erx.Error {
-	var err erx.Error
+func (g *DirectedMap) RemoveNode(node NodeId) {
+	makeError := func(err interface{}) (res erx.Error) {
+		res = erx.NewSequentLevel("Remove node from graph.", err, 1)
+		res.AddV("node id", node)
+		return
+	}
+
 	_, okDirect := g.directArcs[node]
 	_, okReversed := g.reversedArcs[node]
 	if !okDirect && !okReversed {
-		err = erx.NewError("Node doesn't exist.")
-		goto Error
+		panic(makeError(erx.NewError("Node doesn't exist.")))
 	}
 	
 	g.directArcs[node] = nil, false
@@ -97,12 +101,7 @@ func (g *DirectedMap) RemoveNode(node NodeId) erx.Error {
 	for _, connectedNodes := range g.reversedArcs {
 		connectedNodes[node] = false, false
 	}
-	
-	return nil
-	Error:
-	err = erx.NewSequent("Can't remove node from undirected graph.", err)
-	err.AddV("node id", node)
-	return err
+	return
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -116,53 +115,53 @@ func (g *DirectedMap) touchNode(node NodeId) {
 }
 
 // Adding arrow to graph.
-func (g *DirectedMap) AddArc(from, to NodeId) (err erx.Error) {
+func (g *DirectedMap) AddArc(from, to NodeId) {
+	makeError := func(err interface{}) (res erx.Error) {
+		res = erx.NewSequentLevel("Add arc to graph.", err, 1)
+		res.AddV("tail", from)
+		res.AddV("head", to)
+		return
+	}
+
 	g.touchNode(from)
 	g.touchNode(to)
 	
 	if direction, ok := g.directArcs[from][to]; ok && direction {
-		err = erx.NewError("Duplicate arrow.")
-		goto Error
+		panic(makeError(erx.NewError("Duplicate arrow.")))
 	}
 	
 	g.directArcs[from][to] = true
 	g.reversedArcs[to][from] = true
-	g.arcsCnt++	
-	return
-	
-	Error:
-	err = erx.NewSequent("Can't add arrow", err)
-	err.AddV("from", from)
-	err.AddV("to", to)
-	return
+	g.arcsCnt++
+	return	
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // DirectedGraphArcsRemover
 
 // Removing arrow  'from' and 'to' nodes
-func (g *DirectedMap) RemoveArc(from, to NodeId) (err erx.Error) {
+func (g *DirectedMap) RemoveArc(from, to NodeId) {
+	makeError := func(err interface{}) (res erx.Error) {
+		res = erx.NewSequentLevel("Remove arc from graph.", err, 1)
+		res.AddV("tail", from)
+		res.AddV("head", to)
+		return
+	}
+
 	connectedNodes, ok := g.directArcs[from]
 	if !ok {
-		err = erx.NewError("From node doesn't exist.")
-		goto Error
+		panic(makeError(erx.NewError("Tail node doesn't exist.")))
 	}
 	
 	if _, ok = connectedNodes[to]; ok {
-		err = erx.NewError("To node doesn't exist.")
-		goto Error
+		panic(makeError(erx.NewError("Head node doesn't exist.")))
 	}
 	
 	g.directArcs[from][to] = false, false
 	g.reversedArcs[to][from] = false, false
 	g.arcsCnt--
-	return nil
 	
-	Error:
-	err = erx.NewSequent("Can't remove arrow.", err)
-	err.AddV("from", from)
-	err.AddV("to", to)
-	return err
+	return
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -177,7 +176,7 @@ func (g *DirectedMap) ArcsCnt() int {
 }
 
 // Getting all graph sources.
-func (g *DirectedMap) GetSources() (result Nodes, err erx.Error) {
+func (g *DirectedMap) GetSources() (result Nodes) {
 	resultVector := new(Vector)
 	for nodeId, predecessors := range g.reversedArcs {
 		if len(predecessors)==0 {
@@ -197,7 +196,7 @@ func (g *DirectedMap) GetSources() (result Nodes, err erx.Error) {
 }
 
 // Getting all graph sinks.
-func (g *DirectedMap) GetSinks() (result Nodes, err erx.Error) {
+func (g *DirectedMap) GetSinks() (result Nodes) {
 	resultVector := new(Vector)
 	for nodeId, accessors := range g.directArcs {
 		if len(accessors)==0 {
@@ -217,65 +216,69 @@ func (g *DirectedMap) GetSinks() (result Nodes, err erx.Error) {
 }
 
 // Getting node accessors
-func (g *DirectedMap) GetAccessors(node NodeId) (accessors Nodes, err erx.Error) {
-	if accessorsMap, ok := g.directArcs[node]; ok {
-		accessors = make(Nodes, len(accessorsMap))
-		id := 0
-		for nodeId, _ := range accessorsMap {
-			accessors[id] = nodeId
-			id++
-		}
-	} else {
-		err = erx.NewError("Node doesn't exists.")
+func (g *DirectedMap) GetAccessors(node NodeId) (accessors Nodes) {
+	makeError := func(err interface{}) (res erx.Error) {
+		res = erx.NewSequentLevel("Getting node accessors.", err, 1)
+		res.AddV("node id", node)
+		return
+	}
+
+	accessorsMap, ok := g.directArcs[node]
+	if !ok {
+		panic(makeError(erx.NewError("Node doesn't exists.")))
 	}
 	
-	if err!=nil {
-		err = erx.NewSequent("Can't get node accessors.", err)
-		err.AddV("node", node)
+	accessors = make(Nodes, len(accessorsMap))
+	id := 0
+	for nodeId, _ := range accessorsMap {
+		accessors[id] = nodeId
+		id++
 	}
 	
 	return
 }
 
 // Getting node predecessors
-func (g *DirectedMap) GetPredecessors(node NodeId) (predecessors Nodes, err erx.Error) {
-	if predecessorsMap, ok := g.reversedArcs[node]; ok {
-		predecessors = make(Nodes, len(predecessorsMap))
-		id := 0
-		for nodeId, _ := range predecessorsMap {
-			predecessors[id] = nodeId
-			id++
-		}
-	} else {
-		err = erx.NewError("Node doesn't exists.")
+func (g *DirectedMap) GetPredecessors(node NodeId) (predecessors Nodes) {
+	makeError := func(err interface{}) (res erx.Error) {
+		res = erx.NewSequentLevel("Getting node predecessors.", err, 1)
+		res.AddV("node id", node)
+		return
 	}
-	
-	if err!=nil {
-		err = erx.NewSequent("Can't get node predecessors.", err)
-		err.AddV("node", node)
+
+	predecessorsMap, ok := g.reversedArcs[node]
+	if !ok {
+		panic(makeError(erx.NewError("Node doesn't exists.")))
+	}
+
+	predecessors = make(Nodes, len(predecessorsMap))
+	id := 0
+	for nodeId, _ := range predecessorsMap {
+		predecessors[id] = nodeId
+		id++
 	}
 	
 	return
 }
 
-func (g *DirectedMap) CheckArc(from, to NodeId) (isExist bool, err erx.Error) {
+func (g *DirectedMap) CheckArc(from, to NodeId) (isExist bool) {
+	makeError := func(err interface{}) (res erx.Error) {
+		res = erx.NewSequentLevel("Checking arc existance in graph.", err, 1)
+		res.AddV("tail", from)
+		res.AddV("head", to)
+		return
+	}
+	
 	connectedNodes, ok := g.directArcs[from]
 	if !ok {
-		err = erx.NewError("From node doesn't exist.")
-		goto Error
+		panic(makeError(erx.NewError("From node doesn't exist.")))
 	}
 	
 	if _, ok = g.reversedArcs[to]; !ok {
-		err = erx.NewError("To node doesn't exist.")
-		goto Error
+		panic(makeError(erx.NewError("To node doesn't exist.")))
 	}
 	
 	_, isExist = connectedNodes[to]
-	return
-	
-	Error:
-	err = erx.NewSequent("Can't check arrow existance.", err)
-	err.AddV("from", from)
-	err.AddV("to", to)
+
 	return
 }
