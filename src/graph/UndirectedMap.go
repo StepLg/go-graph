@@ -6,23 +6,52 @@ import (
 
 type UndirectedMap struct {
 	edges map[NodeId]map[NodeId]bool
-	arrowsCnt int
+	edgesCnt int
 }
 
 func NewUndirectedMap() *UndirectedMap {
 	g := new(UndirectedMap)
 	g.edges = make(map[NodeId]map[NodeId]bool)
-	g.arrowsCnt = 0
+	g.edgesCnt = 0
 	return g
 }
 
-func (g *UndirectedMap) NodesCnt() int {
-	return len(g.edges)
+///////////////////////////////////////////////////////////////////////////////
+// ConnectionsIterable
+
+func (g *UndirectedMap) ConnectionsIter() <-chan Connection {
+	ch := make(chan Connection)
+	go func() {
+		for from, connectedNodes := range g.edges {
+			for to, _ := range connectedNodes {
+				if from<to {
+					// each edge has a duplicate, so we need to 
+					// push only one edge to channel
+					ch <- Connection{from, to}
+				}
+			}
+		}
+		close(ch)
+	}()
+	return ch
 }
 
-func (g *UndirectedMap) ArrowsCnt() int {
-	return g.arrowsCnt
+///////////////////////////////////////////////////////////////////////////////
+// NodesIterable
+
+func (g *UndirectedMap) NodesIter() <-chan NodeId {
+	ch := make(chan NodeId)
+	go func() {
+		for from, _ := range g.edges {
+			ch <- from
+		}
+		close(ch)
+	}()
+	return ch
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// UndirectedGraphNodesWriter
 
 // Adding single node to graph
 func (g *UndirectedMap) AddNode(node NodeId) erx.Error {
@@ -40,6 +69,31 @@ func (g *UndirectedMap) AddNode(node NodeId) erx.Error {
 	err.AddV("node id", node)
 	return err
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// GraphNodesRemover
+
+func (g *UndirectedMap) RemoveNode(node NodeId) erx.Error {
+	var err erx.Error
+	if _, ok := g.edges[node]; !ok {
+		err = erx.NewError("Node doesn't exist.")
+		goto Error
+	}
+	
+	g.edges[node] = nil, false
+	for _, connectedNodes := range g.edges {
+		connectedNodes[node] = false, false
+	}
+	
+	return nil
+	Error:
+	err = erx.NewSequent("Can't remove node from undirected graph.", err)
+	err.AddV("node id", node)
+	return err
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// UndirectedGraphEdgesWriter
 
 func (g *UndirectedMap) touchNode(node NodeId) {
 	if _, ok := g.edges[node]; !ok {
@@ -59,7 +113,7 @@ func (g *UndirectedMap) AddEdge(from, to NodeId) (err erx.Error) {
 	
 	g.edges[from][to] = true
 	g.edges[to][from] = true
-	g.arrowsCnt++	
+	g.edgesCnt++	
 	return
 	
 	Error:
@@ -68,6 +122,9 @@ func (g *UndirectedMap) AddEdge(from, to NodeId) (err erx.Error) {
 	err.AddV("to", to)
 	return
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// UndirectedGraphEdgesRemover
 
 // Removing arrow  'from' and 'to' nodes
 func (g *UndirectedMap) RemoveEdge(from, to NodeId) (err erx.Error) {
@@ -84,7 +141,7 @@ func (g *UndirectedMap) RemoveEdge(from, to NodeId) (err erx.Error) {
 	
 	g.edges[from][to] = false, false
 	g.edges[to][from] = false, false
-	g.arrowsCnt--
+	g.edgesCnt--
 	return nil
 	
 	Error:
@@ -94,6 +151,16 @@ func (g *UndirectedMap) RemoveEdge(from, to NodeId) (err erx.Error) {
 	return err
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// UndirectedGraphReader
+
+func (g *UndirectedMap) NodesCnt() int {
+	return len(g.edges)
+}
+
+func (g *UndirectedMap) EdgesCnt() int {
+	return g.edgesCnt
+}
 
 // Getting node predecessors
 func (g *UndirectedMap) GetNeighbours(node NodeId) (connected Nodes, err erx.Error) {
@@ -136,21 +203,4 @@ func (g *UndirectedMap) CheckEdge(from, to NodeId) (isExist bool, err erx.Error)
 	err.AddV("from", from)
 	err.AddV("to", to)
 	return
-}
-
-func (g *UndirectedMap) EdgesIter() <-chan Arrow {
-	ch := make(chan Arrow)
-	go func() {
-		for from, connectedNodes := range g.edges {
-			for to, _ := range connectedNodes {
-				if from<to {
-					// each edge has a duplicate, so we need to 
-					// push only one edge to channel
-					ch <- Arrow{from, to}
-				}
-			}
-		}
-		close(ch)
-	}()
-	return ch
 }

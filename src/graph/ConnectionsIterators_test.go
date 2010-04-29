@@ -15,26 +15,26 @@ func DirectedGraphEquals(actual interface{}, expected interface{}) (match bool, 
 		if eGr, ok1 := expected.(DirectedGraph); ok1 {
 			match = true
 			missed := ""
-			for arrow := range eGr.ArrowsIter() {
-				isExist, err := aGr.CheckArrow(arrow.From, arrow.To)
+			for arrow := range eGr.ConnectionsIter() {
+				isExist, err := aGr.CheckArc(arrow.Tail, arrow.Head)
 				if err!=nil || !isExist {
 					match = false
 					if missed != "" {
 						missed += ", "
 					}
-					missed += string(arrow.From) + "->" + string(arrow.To) 
+					missed += string(arrow.Tail) + "->" + string(arrow.Head) 
 				}
 			}
 			
 			phantom := ""
-			for arrow := range aGr.ArrowsIter() {
-				isExist, err := eGr.CheckArrow(arrow.From, arrow.To)
+			for arrow := range aGr.ConnectionsIter() {
+				isExist, err := eGr.CheckArc(arrow.Tail, arrow.Head)
 				if err!=nil || !isExist {
 					match = false
 					if phantom!="" {
 						phantom += ", "
 					}
-					phantom += fmt.Sprintf("%v->%v", arrow.From, arrow.To) 
+					phantom += fmt.Sprintf("%v->%v", arrow.Tail, arrow.Head) 
 				}
 			}
 			
@@ -61,7 +61,7 @@ func DirectedGraphEquals(actual interface{}, expected interface{}) (match bool, 
 }
 
 func ArrowsIteratorSpec(c gospec.Context) {
-	gr := NewDirectedMap()
+	gr := DirectedGraph(NewDirectedMap())
 	
 	c.Specify("Copy empty graph", func() {
 		gr1 := NewDirectedMap()
@@ -71,10 +71,10 @@ func ArrowsIteratorSpec(c gospec.Context) {
 	
 	c.Specify("Copy simple directed graph", func() {
 		gr1 := NewDirectedMap()
-		gr.AddArrow(1, 2)
-		gr.AddArrow(2, 3)
-		gr.AddArrow(1, 4)
-		gr.AddArrow(5, 1)
+		gr.AddArc(1, 2)
+		gr.AddArc(2, 3)
+		gr.AddArc(1, 4)
+		gr.AddArc(5, 1)
 
 		c.Expect(CopyDirectedGraph(gr, gr1), IsNil)
 		c.Expect(gr1, DirectedGraphEquals, gr)
@@ -83,6 +83,6 @@ func ArrowsIteratorSpec(c gospec.Context) {
 
 func TestArrowsIteratorSpec(t *testing.T) {
 	r := gospec.NewRunner()
-	r.AddSpec("ArrowsIteratorSpec", ArrowsIteratorSpec)
+	r.AddSpec(ArrowsIteratorSpec)
 	gospec.MainGoTest(r, t)
 }

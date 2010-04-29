@@ -16,7 +16,7 @@ func DirectedMapSpec(c gospec.Context) {
 			c.Expect(gr.NodesCnt(), Equals, 0)
 		})
 		c.Specify("contain no edges", func() {
-			c.Expect(gr.ArrowsCnt(), Equals, 0)
+			c.Expect(gr.ArcsCnt(), Equals, 0)
 		})
 	})
 	
@@ -30,7 +30,7 @@ func DirectedMapSpec(c gospec.Context) {
 		})
 		
 		c.Specify("doesn't change arrows count", func() {
-			c.Expect(gr.ArrowsCnt(), Equals, 0)
+			c.Expect(gr.ArcsCnt(), Equals, 0)
 		})
 		
 		c.Specify("no accessors", func() {
@@ -63,10 +63,10 @@ func DirectedMapSpec(c gospec.Context) {
 		nodeId := NodeId(1)
 		anotherNodeId := NodeId(2)
 		var err erx.Error
-		err = gr.AddArrow(nodeId, anotherNodeId)
+		err = gr.AddArc(nodeId, anotherNodeId)
 		c.Expect(err, IsNil)
 		var arrowExists bool
-		arrowExists, err = gr.CheckArrow(nodeId, anotherNodeId)
+		arrowExists, err = gr.CheckArc(nodeId, anotherNodeId)
 		c.Expect(err, IsNil)
 		c.Expect(arrowExists, Equals, true)
 		
@@ -76,7 +76,7 @@ func DirectedMapSpec(c gospec.Context) {
 		})
 		
 		c.Specify("changing arrows count", func() {
-			c.Expect(gr.ArrowsCnt(), Equals, 1)
+			c.Expect(gr.ArcsCnt(), Equals, 1)
 		})
 		
 		c.Specify("correct accessors in arrow start", func() {
@@ -117,20 +117,20 @@ func DirectedMapSpec(c gospec.Context) {
 	})
 	
 	c.Specify("A bit more complex example", func() {
-		c.Expect(gr.AddArrow(1, 2), IsNil)
-		c.Expect(gr.AddArrow(2, 3), IsNil)
-		c.Expect(gr.AddArrow(3, 1), IsNil)
-		c.Expect(gr.AddArrow(1, 5), IsNil)
-		c.Expect(gr.AddArrow(4, 5), IsNil)
-		c.Expect(gr.AddArrow(6, 2), IsNil)
-		c.Expect(gr.AddArrow(1, 7), IsNil)
+		c.Expect(gr.AddArc(1, 2), IsNil)
+		c.Expect(gr.AddArc(2, 3), IsNil)
+		c.Expect(gr.AddArc(3, 1), IsNil)
+		c.Expect(gr.AddArc(1, 5), IsNil)
+		c.Expect(gr.AddArc(4, 5), IsNil)
+		c.Expect(gr.AddArc(6, 2), IsNil)
+		c.Expect(gr.AddArc(1, 7), IsNil)
 		
 		c.Specify("checking nodes count", func() {
 			c.Expect(gr.NodesCnt(), Equals, 7)
 		})
 		
 		c.Specify("checking arrows count", func() {
-			c.Expect(gr.ArrowsCnt(), Equals, 7)
+			c.Expect(gr.ArcsCnt(), Equals, 7)
 		})
 		
 		c.Specify("checking sources", func() {
@@ -194,6 +194,6 @@ func DirectedMapSpec(c gospec.Context) {
 
 func TestDirectedMapSpec(t *testing.T) {
 	r := gospec.NewRunner()
-	r.AddSpec("DirectedMapSpec", DirectedMapSpec)
+	r.AddSpec(DirectedMapSpec)
 	gospec.MainGoTest(r, t)
 }

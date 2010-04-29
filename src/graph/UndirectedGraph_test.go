@@ -14,7 +14,7 @@ func UndirectedGraphSpec(c gospec.Context, graphCreator func() UndirectedGraph) 
 			c.Expect(gr.NodesCnt(), Equals, 0)
 		})
 		c.Specify("contain no edges", func() {
-			c.Expect(gr.ArrowsCnt(), Equals, 0)
+			c.Expect(gr.EdgesCnt(), Equals, 0)
 		})
 	})
 
@@ -29,7 +29,7 @@ func UndirectedGraphSpec(c gospec.Context, graphCreator func() UndirectedGraph) 
 		})
 		
 		c.Specify("doesn't change arrows count", func() {
-			c.Expect(gr.ArrowsCnt(), Equals, 0)
+			c.Expect(gr.EdgesCnt(), Equals, 0)
 		})
 		
 		c.Specify("no neighbours", func() {
@@ -49,7 +49,7 @@ func UndirectedGraphSpec(c gospec.Context, graphCreator func() UndirectedGraph) 
 		})
 		
 		c.Specify("changing edges count", func() {
-			c.Expect(gr.ArrowsCnt(), Equals, 1)
+			c.Expect(gr.EdgesCnt(), Equals, 1)
 		})
 		
 		c.Specify("neighbours", func() {
@@ -75,7 +75,7 @@ func TestUndirectedGraphSpec(t *testing.T) {
 		}
 	}
 	
-	r.AddSpec("UndirectedGraph(Map)", cr(func() UndirectedGraph {
+	r.AddNamedSpec("UndirectedGraph(Map)", cr(func() UndirectedGraph {
 		return UndirectedGraph(NewUndirectedMap())
 	}))
 	gospec.MainGoTest(r, t)

@@ -85,6 +85,6 @@ func MatrixUndirectedInternalSpec(c gospec.Context) {
 
 func TestMatrixUndirectedSpec(t *testing.T) {
 	r := gospec.NewRunner()
-	r.AddSpec("MatrixUndirectedInternalSpec", MatrixUndirectedInternalSpec)
+	r.AddSpec(MatrixUndirectedInternalSpec)
 	gospec.MainGoTest(r, t)
 }

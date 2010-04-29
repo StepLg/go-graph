@@ -10,17 +10,48 @@ type NodeId uint
 
 type Nodes []NodeId
 
-// Interface representing directed graph
-type DirectedGraph interface {
+type Connection struct {
+	Tail NodeId
+	Head NodeId
+}
+
+type ConnectionsIterable interface {
+	ConnectionsIter() <-chan Connection
+}
+
+type NodesIterable interface {
+	NodesIter() <-chan NodeId
+}
+
+type GraphNodesWriter interface {
 	// Adding single node to graph
 	AddNode(node NodeId) erx.Error
+}
 
-	// Adding arrow to graph.
-	AddArrow(from, to NodeId) erx.Error
-	
-	// Removing arrow between 'from' and 'to' nodes
-	RemoveArrow(from, to NodeId) erx.Error
-	
+type GraphNodesReader interface {
+	// Getting nodes count in graph
+	NodesCnt() int
+}
+
+type GraphNodesRemover interface {
+	// Removing node from graph
+	RemoveNode(node NodeId) erx.Error
+}
+
+type DirectedGraphArcsWriter interface {
+	// Adding directed arc to graph
+	AddArc(from, to NodeId) erx.Error
+}
+
+type DirectedGraphArcsRemover interface {
+	// Removding directed arc
+	RemoveArc(from, to NodeId) erx.Error
+}
+
+type DirectedGraphReader interface {
+	// Getting arcs count in graph
+	ArcsCnt() int
+
 	// Getting all graph sources.
 	GetSources() (Nodes, erx.Error)
 	
@@ -36,46 +67,78 @@ type DirectedGraph interface {
 	// Checking arrow existance between node1 and node2
 	//
 	// node1 and node2 must exist in graph or error will be returned
-	CheckArrow(node1, node2 NodeId) (bool, erx.Error)
-
-	ArrowsIter() <-chan Arrow
+	CheckArc(node1, node2 NodeId) (bool, erx.Error)
+	
 }
 
-type Arrow struct {
-	From NodeId
-	To   NodeId
+// Interface representing directed graph
+type DirectedGraph interface {
+	GraphNodesWriter
+	GraphNodesReader
+	GraphNodesRemover
+
+	ConnectionsIterable
+	NodesIterable
+	DirectedGraphArcsWriter
+	DirectedGraphArcsRemover
+	DirectedGraphReader
 }
 
-type DirectedArrowsIterable interface {
-	ArrowsIter() <-chan Arrow
-}
-
-// Interface representing undirected graph
-type UndirectedGraph interface {
-	// Adding single node to graph
-	AddNode(node NodeId) erx.Error
-
-	// Nodes count in graph
-	NodesCnt() int
-
+type UndirectedGraphReader interface {
 	// Arrows count in graph
-	ArrowsCnt() int
+	EdgesCnt() int
 
-	// Adding new edge to graph
-	AddEdge(node1, node2 NodeId) (erx.Error)
-	
-	// Removing edge, connecting node1 and node2
-	RemoveEdge(node1, node2 NodeId) erx.Error
-	
 	// Checking edge existance between node1 and node2
 	//
 	// node1 and node2 must exist in graph or error will be returned
 	CheckEdge(node1, node2 NodeId) (bool, erx.Error)
-	
+
 	// Getting all nodes, connected to given one
 	GetNeighbours(node NodeId) (Nodes, erx.Error)
+}
+
+type UndirectedGraphEdgesWriter interface {
+	// Adding new edge to graph
+	AddEdge(node1, node2 NodeId) (erx.Error)	
+}
+
+type UndirectedGraphEdgesRemover interface {
+	// Removing edge, connecting node1 and node2
+	RemoveEdge(node1, node2 NodeId) erx.Error
+}
+
+// Interface representing undirected graph
+type UndirectedGraph interface {
+	GraphNodesWriter
+	GraphNodesReader
+	GraphNodesRemover
+
+	ConnectionsIterable
+	NodesIterable
+
+	UndirectedGraphEdgesWriter
+	UndirectedGraphEdgesRemover
+	UndirectedGraphReader
+}
+
+type MixedGraph interface {
+	GraphNodesWriter
+	GraphNodesReader
+	GraphNodesRemover
 	
-	EdgesIter() <-chan Arrow
+	ConnectionsIterable
+	NodesIterable
+
+	UndirectedGraphEdgesWriter
+	UndirectedGraphEdgesRemover
+	UndirectedGraphReader
+
+	DirectedGraphArcsWriter
+	DirectedGraphArcsRemover
+	DirectedGraphReader
+	
+	EdgesIter() ConnectionsIterable
+	ArcsIter() ConnectionsIterable
 }
 
 func init() {

@@ -5,28 +5,28 @@ import (
 	. "exp/iterable"
 )
 
-type arrowsIterable struct {
-	arrows DirectedArrowsIterable
+type connectionsIterable struct {
+	arrows ConnectionsIterable
 }
 
-func (ai arrowsIterable) Iter() <-chan interface{} {
+func (ai connectionsIterable) Iter() <-chan interface{} {
 	ch := make(chan interface{})
 	go func() {
-		for arr := range ai.arrows.ArrowsIter() {
+		for arr := range ai.arrows.ConnectionsIter() {
 			ch <- arr
 		}
 	}()
 	return ch
 }
 
-func ArrowsToGenericIter(arrIter DirectedArrowsIterable) Iterable {
-	return arrowsIterable{arrIter}
+func ArrowsToGenericIter(connIter ConnectionsIterable) Iterable {
+	return connectionsIterable{connIter}
 }
 
-func CopyDirectedGraph(arrIter DirectedArrowsIterable, gr DirectedGraph) erx.Error {
+func CopyDirectedGraph(connIter ConnectionsIterable, gr DirectedGraphArcsWriter) erx.Error {
 	wheel := erx.NewError("Can't copy directed graph")
-	for arrow := range arrIter.ArrowsIter() {
-		err := gr.AddArrow(arrow.From, arrow.To)
+	for arrow := range connIter.ConnectionsIter() {
+		err := gr.AddArc(arrow.Tail, arrow.Head)
 		if err!=nil {
 			wheel.AddE(err)
 		}
@@ -37,4 +37,14 @@ func CopyDirectedGraph(arrIter DirectedArrowsIterable, gr DirectedGraph) erx.Err
 	}
 	
 	return nil
+}
+
+func BuildDirectedGraph(gr DirectedGraph, connIterable ConnectionsIterable , isCorrectOrder func(Connection) bool) {
+	for arr := range connIterable.ConnectionsIter() {
+		if isCorrectOrder(arr) {
+			gr.AddArc(arr.Tail, arr.Head)
+		} else {
+			gr.AddArc(arr.Head, arr.Tail)
+		}
+	}
 }
