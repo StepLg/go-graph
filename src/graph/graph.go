@@ -137,8 +137,6 @@ type MixedGraph interface {
 	DirectedGraphArcsRemover
 	DirectedGraphReader
 	
-	ConnectionsIterable
-	
 	// Iterate over only undirected edges
 	EdgesIter() ConnectionsIterable
 	
