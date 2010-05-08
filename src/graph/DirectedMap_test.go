@@ -2,11 +2,11 @@ package graph
 
 import (
 	"testing"
-	"github.com/orfjackal/gospec/src/gospec"
-	. "github.com/orfjackal/gospec/src/gospec"
 	"runtime"
 	"strings"
 	"github.com/StepLg/go-erx/src/erx"
+	"github.com/orfjackal/gospec/src/gospec"
+	. "github.com/orfjackal/gospec/src/gospec"
 )
 
 func init() {
@@ -17,8 +17,8 @@ func init() {
 	erx.AddPathCut(prevDirName)
 }
 
-func DirectedMapSpec(c gospec.Context) {
-	gr := NewDirectedMap()
+func DirectedGraphSpec(c gospec.Context, graphCreator func() DirectedGraph) {
+	gr := graphCreator()
 	
 	c.Specify("Empty directed graph", func() {
 		c.Specify("contain no nodes", func() {
@@ -167,6 +167,19 @@ func DirectedMapSpec(c gospec.Context) {
 
 func TestDirectedMapSpec(t *testing.T) {
 	r := gospec.NewRunner()
-	r.AddSpec(DirectedMapSpec)
+
+	// paramenerized test creator
+	cr := func(graphCreator func() DirectedGraph) func (c gospec.Context) {
+		return func(c gospec.Context){
+			DirectedGraphSpec(c, graphCreator)
+		}
+	}
+	
+	r.AddNamedSpec("DirectedGraph(DirectedMap)", cr(func() DirectedGraph {
+		return DirectedGraph(NewDirectedMap())
+	}))
+	r.AddNamedSpec("DirectedGraph(MixedMatrix)", cr(func() DirectedGraph {
+		return DirectedGraph(NewMixedMatrix(10))
+	}))
 	gospec.MainGoTest(r, t)
 }

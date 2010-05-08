@@ -132,8 +132,10 @@ type MixedGraph interface {
 	DirectedGraphReader
 	
 	// Iterate over only undirected edges
-	EdgesIter() ConnectionsIterable
+	EdgesIter() <-chan Connection 
 	
 	// Iterate over only directed arcs
-	ArcsIter() ConnectionsIterable
+	ArcsIter() <-chan Connection
+	
+	CheckEdgeType(tail, head NodeId) MixedConnectionType
 }

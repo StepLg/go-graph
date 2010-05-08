@@ -72,5 +72,8 @@ func TestUndirectedGraphSpec(t *testing.T) {
 	r.AddNamedSpec("UndirectedGraph(Matrix)", cr(func() UndirectedGraph {
 		return UndirectedGraph(NewUndirectedMatrix(10))
 	}))
+	r.AddNamedSpec("UndirectedGraph(MixedMatrix)", cr(func() UndirectedGraph {
+		return UndirectedGraph(NewMixedMatrix(10))
+	}))
 	gospec.MainGoTest(r, t)
 }

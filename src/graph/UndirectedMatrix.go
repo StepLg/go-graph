@@ -8,6 +8,7 @@ type UndirectedMatrix struct {
 	nodes []bool
 	size int
 	nodeIds map[NodeId]int // internal node ids, used in nodes array
+	edgesCnt int
 }
 
 // Creating new undirected graph with matrix storage.
@@ -22,6 +23,7 @@ func NewUndirectedMatrix(size int) *UndirectedMatrix {
 	g.nodes = make([]bool, size*(size-1)/2)
 	g.size = size
 	g.nodeIds = make(map[NodeId]int)
+	g.edgesCnt = 0
 	return g
 }
 
@@ -121,6 +123,7 @@ func (g *UndirectedMatrix) AddEdge(node1, node2 NodeId) {
 		panic(makeError(err))
 	}
 	g.nodes[conn] = true
+	g.edgesCnt++
 	
 	return
 }
@@ -154,6 +157,7 @@ func (g *UndirectedMatrix) RemoveEdge(node1, node2 NodeId) {
 	}
 	
 	g.nodes[conn] = false
+	g.edgesCnt--
 	
 	return
 }
@@ -168,7 +172,7 @@ func (g *UndirectedMatrix) NodesCnt() int {
 
 // Current nodes count in graph
 func (g *UndirectedMatrix) EdgesCnt() int {
-	panic(erx.NewError("Function doesn't implemented yet"))
+	return g.edgesCnt
 }
 
 
