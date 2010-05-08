@@ -3,6 +3,7 @@ include $(GOROOT)/src/Make.$(GOARCH)
 TARG=graph
 GOFILES=               \
 	graph.go           \
+	search.go          \
 	stuff.go           \
 	DirectedMap.go     \
 	UndirectedMatrix.go\

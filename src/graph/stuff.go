@@ -53,11 +53,11 @@ type nodesPriorityQueue interface {
 	// Get item with max priority and remove it from the queue
 	//
 	// Panic if queue is empty
-	Next() NodeId
+	Next() (NodeId, float)
 	// Get item with max priority without removing it from the queue
 	//
 	// Panic if queue is empty
-	Pick() NodeId
+	Pick() (NodeId, float)
 	// Total queue size
 	Size() int
 	// Check if queue is empty
@@ -104,7 +104,9 @@ func (q *nodesPriorityQueueSimple) Add(node NodeId, priority float) {
 	for id, data := range q.data[0:q.size] {
 		if data.Node == node {
 			found = true
-			q.data[id].Priority = priority
+			if priority > q.data[id].Priority { 
+				q.data[id].Priority = priority
+			}
 			break
 		}
 	}
@@ -126,23 +128,26 @@ func (q *nodesPriorityQueueSimple) Add(node NodeId, priority float) {
 // Get item with max priority and remove it from the queue
 //
 // Panic if queue is empty
-func (q *nodesPriorityQueueSimple) Next() NodeId {
+func (q *nodesPriorityQueueSimple) Next() (NodeId, float) {
 	if q.Empty() {
 		panic("Can't pick from empty queue.")
 	}
 	node := q.data[q.size-1].Node
+	prior := q.data[q.size-1].Priority
 	q.size--
-	return node	
+	return node, prior
 }
 
 // Get item with max priority without removing it from the queue
 //
 // Panic if queue is empty
-func (q *nodesPriorityQueueSimple) Pick() NodeId {
+func (q *nodesPriorityQueueSimple) Pick() (NodeId, float) {
 	if q.Empty() {
 		panic("Can't pick from empty queue.")
 	}
-	return q.data[q.size-1].Node
+	node := q.data[q.size-1].Node
+	prior := q.data[q.size-1].Priority
+	return node, prior
 }
 
 // Total queue size
