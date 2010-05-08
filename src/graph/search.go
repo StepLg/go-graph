@@ -15,6 +15,10 @@ type ICheckPathGraph interface {
 
 type ConnectionWeightFunc func(head, tail NodeId) float
 
+func SimpleWeightFunc(head, tail NodeId) float {
+	return 1.0
+}
+
 type CheckPath func(gr ICheckPathGraph, from, to NodeId, maxWeight float, weightFunction ConnectionWeightFunc) bool
 
 func CheckPathDijkstra(gr ICheckPathGraph, from, to NodeId, maxWeight float, weightFunction ConnectionWeightFunc) bool {
