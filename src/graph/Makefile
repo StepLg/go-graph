@@ -4,6 +4,7 @@ TARG=graph
 GOFILES=               \
 	graph.go           \
 	search.go          \
+	filters.go         \
 	stuff.go           \
 	DirectedMap.go     \
 	UndirectedMatrix.go\
