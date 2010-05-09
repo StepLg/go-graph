@@ -42,7 +42,7 @@ type DirectedGraphArcsRemover interface {
 	RemoveArc(from, to NodeId)
 }
 
-type DirectedGraphReader interface {
+type DirectedGraphArcsReader interface {
 	// Getting arcs count in graph
 	ArcsCnt() int
 
@@ -62,7 +62,13 @@ type DirectedGraphReader interface {
 	//
 	// node1 and node2 must exist in graph or error will be returned
 	CheckArc(node1, node2 NodeId) bool
-	
+}
+
+type DirectedGraphReader interface {
+	GraphNodesReader
+	DirectedGraphArcsReader
+	ConnectionsIterable
+	NodesIterable
 }
 
 // Interface representing directed graph
@@ -75,10 +81,10 @@ type DirectedGraph interface {
 	NodesIterable
 	DirectedGraphArcsWriter
 	DirectedGraphArcsRemover
-	DirectedGraphReader
+	DirectedGraphArcsReader
 }
 
-type UndirectedGraphReader interface {
+type UndirectedGraphEdgesReader interface {
 	// Arrows count in graph
 	EdgesCnt() int
 
@@ -101,6 +107,13 @@ type UndirectedGraphEdgesRemover interface {
 	RemoveEdge(node1, node2 NodeId)
 }
 
+type UndirectedGraphReader interface {
+	GraphNodesReader
+	UndirectedGraphEdgesReader
+	ConnectionsIterable
+	NodesIterable
+}
+
 // Interface representing undirected graph
 type UndirectedGraph interface {
 	GraphNodesWriter
@@ -112,7 +125,7 @@ type UndirectedGraph interface {
 
 	UndirectedGraphEdgesWriter
 	UndirectedGraphEdgesRemover
-	UndirectedGraphReader
+	UndirectedGraphEdgesReader
 }
 
 type MixedGraph interface {
@@ -125,11 +138,10 @@ type MixedGraph interface {
 
 	UndirectedGraphEdgesWriter
 	UndirectedGraphEdgesRemover
-	UndirectedGraphReader
 
 	DirectedGraphArcsWriter
 	DirectedGraphArcsRemover
-	DirectedGraphReader
+	DirectedGraphArcsReader
 	
 	// Iterate over only undirected edges
 	EdgesIter() <-chan Connection 

@@ -5,23 +5,15 @@ import (
 )
 
 
-// Interface for CheckPath functions
-//
-// Require GraphNodesReader because of very unefficient nodesPriorityQueue realization
-type ICheckPathGraph interface {
-	DirectedGraphReader
-	GraphNodesReader
-}
-
 type ConnectionWeightFunc func(head, tail NodeId) float
 
 func SimpleWeightFunc(head, tail NodeId) float {
 	return 1.0
 }
 
-type CheckPath func(gr ICheckPathGraph, from, to NodeId, maxWeight float, weightFunction ConnectionWeightFunc) bool
+type CheckPath func(gr DirectedGraphReader, from, to NodeId, maxWeight float, weightFunction ConnectionWeightFunc) bool
 
-func CheckPathDijkstra(gr ICheckPathGraph, from, to NodeId, maxWeight float, weightFunction ConnectionWeightFunc) bool {
+func CheckPathDijkstra(gr DirectedGraphReader, from, to NodeId, maxWeight float, weightFunction ConnectionWeightFunc) bool {
 	defer func() {
 		if e:=recover(); e!=nil {
 			err := erx.NewSequent("Check path in graph with Dijkstra algorithm", e)
