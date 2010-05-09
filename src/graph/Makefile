@@ -5,6 +5,7 @@ GOFILES=               \
 	graph.go           \
 	search.go          \
 	filters.go         \
+	algorithms.go      \
 	stuff.go           \
 	DirectedMap.go     \
 	UndirectedMatrix.go\
