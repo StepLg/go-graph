@@ -7,6 +7,7 @@ GOFILES=               \
 	filters.go         \
 	algorithms.go      \
 	stuff.go           \
+	output.go          \
 	DirectedMap.go     \
 	UndirectedMatrix.go\
 	UndirectedMap.go   \
