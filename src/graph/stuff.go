@@ -1,8 +1,6 @@
 package graph
 
 import (
-	"sort"
-
 	"github.com/StepLg/go-erx/src/erx"
 )
 
@@ -69,6 +67,7 @@ type nodesPriorityQueue interface {
 // Warning! It's very UNEFFICIENT!!!
 type nodesPriorityQueueSimple struct {
 	data nodesPriority
+	nodesIndex map[NodeId]int
 	size int
 }
 
@@ -84,6 +83,7 @@ func newPriorityQueueSimple(size int) *nodesPriorityQueueSimple {
 	
 	q := &nodesPriorityQueueSimple {
 		data: make(nodesPriority, size),
+		nodesIndex: make(map[NodeId]int),
 		size: 0,
 	}
 	return q
@@ -101,28 +101,43 @@ func (q *nodesPriorityQueueSimple) Add(node NodeId, priority float) {
 	}()
 	
 	found := false
-	for id, data := range q.data[0:q.size] {
-		if data.Node == node {
-			found = true
-			if priority > q.data[id].Priority { 
-				q.data[id].Priority = priority
+	if id, ok := q.nodesIndex[node]; ok {
+		if priority > q.data[id].Priority { 
+			q.data[id].Priority = priority
+			// changing position
+			newId := id+1
+			for q.data[newId].Priority<priority && newId<q.size {
+				newId++
 			}
-			break
+			
+			if newId > id+1 {
+				// need to move
+				copy(q.data[id:newId-1], q.data[id+1:newId])
+				q.data[newId-1].Node = node
+				q.data[newId-1].Priority = priority
+			}
 		}
+		found = true
 	}
-	
+
 	if !found {
 		if q.size==len(q.data) {
 			err := erx.NewError("Not enough space to add new node.")
 			err.AddV("size", len(q.data))
 			panic(err)
 		}
-		q.data[q.size].Node = node
-		q.data[q.size].Priority = priority
+		id := 0
+		for q.data[id].Priority<priority && id<q.size {
+			id++
+		}
+		if id<q.size {
+			copy(q.data[id+1:q.size+1], q.data[id:q.size])
+		}
+		q.data[id].Node = node
+		q.data[id].Priority = priority
+		q.nodesIndex[node] = id
 		q.size++
 	}
-	
-	sort.Sort(q.data[0:q.size])
 }
 
 // Get item with max priority and remove it from the queue
@@ -135,6 +150,7 @@ func (q *nodesPriorityQueueSimple) Next() (NodeId, float) {
 	node := q.data[q.size-1].Node
 	prior := q.data[q.size-1].Priority
 	q.size--
+	
 	return node, prior
 }
 

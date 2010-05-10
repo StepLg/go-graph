@@ -7,13 +7,15 @@ import (
 
 type ConnectionWeightFunc func(head, tail NodeId) float
 
+type StopFunc func(node NodeId, sumWeight float) bool
+
 func SimpleWeightFunc(head, tail NodeId) float {
 	return 1.0
 }
 
-type CheckPath func(gr DirectedGraphReader, from, to NodeId, maxWeight float, weightFunction ConnectionWeightFunc) bool
+type CheckPath func(gr DirectedGraphReader, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool
 
-func CheckPathDijkstra(gr DirectedGraphReader, from, to NodeId, maxWeight float, weightFunction ConnectionWeightFunc) bool {
+func CheckPathDijkstra(gr DirectedGraphReader, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool {
 	defer func() {
 		if e:=recover(); e!=nil {
 			err := erx.NewSequent("Check path in graph with Dijkstra algorithm", e)
@@ -31,7 +33,8 @@ func CheckPathDijkstra(gr DirectedGraphReader, from, to NodeId, maxWeight float,
 	q.Add(from, 0)
 	
 	for !q.Empty() {
-		curNode, curWeight := q.Next() 
+		curNode, curWeight := q.Next()
+		curWeight = -curWeight // because we inverse weight in priority queue
 		accessors := gr.GetAccessors(curNode)
 		for _, nextNode := range accessors {
 			if nextNode==to {
@@ -46,8 +49,8 @@ func CheckPathDijkstra(gr DirectedGraphReader, from, to NodeId, maxWeight float,
 				panic(err)
 			}
 			nextWeight := curWeight + arcWeight
-			if nextWeight < maxWeight || maxWeight < 0 {
-				q.Add(nextNode, nextWeight)
+			if stopFunc==nil || stopFunc(nextNode, nextWeight) {
+				q.Add(nextNode, -nextWeight)
 			}
 		}
 	}

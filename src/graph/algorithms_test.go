@@ -14,7 +14,7 @@ func ReduceDirectPathsSpec(c gospec.Context) {
 		gr.AddArc(1, 3)
 		
 		rgr := NewDirectedMap()
-		ReduceDirectPaths(gr, rgr)
+		ReduceDirectPaths(gr, rgr, nil)
 		
 		expectedGraph := NewDirectedMap()
 		expectedGraph.AddArc(1, 2)
@@ -33,7 +33,7 @@ func ReduceDirectPathsSpec(c gospec.Context) {
 		gr.AddArc(2, 6)
 		
 		rgr := NewDirectedMap()
-		ReduceDirectPaths(gr, rgr)
+		ReduceDirectPaths(gr, rgr, nil)
 		
 		expectedGraph := NewDirectedMap()
 		expectedGraph.AddArc(1, 2)
