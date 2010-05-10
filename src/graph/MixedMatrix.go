@@ -515,6 +515,19 @@ func (gr *MixedMatrix) ArcsIter() <-chan Connection {
 	return ch
 }
 
+func (gr *MixedMatrix) CheckEdgeType(tail NodeId, head NodeId) MixedConnectionType {
+	defer func() {
+		if e := recover(); e!=nil {
+			err := erx.NewSequent("Check edge type in mixed graph.", e)
+			err.AddV("tail", tail)
+			err.AddV("head", head)
+			panic(err)
+		}
+	}()
+	
+	conn := gr.getConnectionId(tail, head, false)
+	return gr.nodes[conn]
+}
 
 func (gr *MixedMatrix) getConnectionId(node1, node2 NodeId, create bool) int {
 	defer func() {
