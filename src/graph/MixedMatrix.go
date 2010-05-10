@@ -586,6 +586,6 @@ func (gr *MixedMatrix) getConnectionId(node1, node2 NodeId, create bool) int {
 	}
 	
 	// id from upper triangle matrix, stored in vector
-	connId := id1*gr.size + id2 - 1 - id1*(id1+1)/2
+	connId := id1*(gr.size-1) + id2 - 1 - id1*(id1+1)/2
 	return connId 
 }

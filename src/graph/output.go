@@ -11,6 +11,10 @@ func (node NodeId) String() string {
 	return strconv.Itoa(int(uint(node)))
 }
 
+func (conn Connection) String() string {
+	return fmt.Sprintf("%v->%v", conn.Tail, conn.Head)
+}
+
 type IWriter interface {
 	Write(s string)
 }
@@ -89,5 +93,12 @@ func PlotDirectedGraphToDot(gr DirectedGraphReader, wr IWriter, nodeStyleFunc Do
 	wr.Write("digraph messages {\n")
 	PlotNodesToDot(gr, wr, nodeStyleFunc)
 	PlotArcsToDot(gr, wr, arcStyleFunc)
+	wr.Write("}\n")
+}
+
+func PlotMixedGraphToDot(gr MixedGraph, wr IWriter, nodeStyleFunc DotNodeStyleFunc, connStyleFunc DotConnectionStyleFunc) {
+	wr.Write("digraph messages {\n")
+	PlotNodesToDot(gr, wr, nodeStyleFunc)
+	PlotArcsToDot(gr, wr, connStyleFunc)
 	wr.Write("}\n")
 }
