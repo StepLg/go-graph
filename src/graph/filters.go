@@ -1,19 +1,17 @@
 package graph
 
-// Arcs filter
+// Arcs filter in DirectedGraphReader
 //
 // This is arcs filter for DirectedGraphReader. Initialize it with arcs, which need to be filtered
 // and they never appeared in GetAccessors, GetPredecessors, CheckArc and Iter functions.
 //
-// Be careful! Filter doesn't affect GetSources and GetSinks functions. Also it doesn't recalculate
-// dangling vertexes.
 type DirectedGraphArcsFilter struct {
-	DirectedGraphReader
+	DirectedGraphArcsReader
 	arcs []Connection
 }
 
 // Create arcs filter with array of filtering arcs
-func NewArcsFilter(g DirectedGraphReader, arcs []Connection) *DirectedGraphArcsFilter {
+func NewDirectedGraphArcsFilter(g DirectedGraphReader, arcs []Connection) *DirectedGraphArcsFilter {
 	filter := &DirectedGraphArcsFilter{
 		DirectedGraphReader: g,
 		arcs: arcs,
@@ -22,7 +20,7 @@ func NewArcsFilter(g DirectedGraphReader, arcs []Connection) *DirectedGraphArcsF
 }
 
 // Create arcs filter with single arc
-func NewArcFilter(g DirectedGraphReader, tail, head NodeId) *DirectedGraphArcsFilter {
+func NewDirectedGraphArcFilter(g DirectedGraphReader, tail, head NodeId) *DirectedGraphArcsFilter {
 	filter := &DirectedGraphArcsFilter{
 		DirectedGraphReader: g,
 		arcs: make([]Connection, 1),
@@ -56,24 +54,24 @@ func (filter *DirectedGraphArcsFilter) GetAccessors(node NodeId) Nodes {
 
 // Getting node predecessors
 func (filter *DirectedGraphArcsFilter) GetPredecessors(node NodeId) Nodes {
-	accessors := filter.DirectedGraphReader.GetAccessors(node)
-	newAccessorsLen := len(accessors)
+	predecessors := filter.DirectedGraphReader.GetAccessors(node)
+	newPredecessorsLen := len(predecessors)
 	for _, filteringConnection := range filter.arcs {
 		if node == filteringConnection.Head {
 			// need to remove filtering arc
 			k := 0
-			for k=0; k<newAccessorsLen; k++ {
-				if accessors[k]==filteringConnection.Tail {
+			for k=0; k<newPredecessorsLen; k++ {
+				if predecessors[k]==filteringConnection.Tail {
 					break
 				}
 			}
-			if k<newAccessorsLen {
-				copy(accessors[k:newAccessorsLen-1], accessors[k+1:newAccessorsLen])
-				newAccessorsLen--
+			if k<newPredecessorsLen {
+				copy(predecessors[k:newPredecessorsLen-1], predecessors[k+1:newPredecessorsLen])
+				newPredecessorsLen--
 			}
 		}
 	}
-	return accessors[0:newAccessorsLen]
+	return predecessors[0:newPredecessorsLen]
 }
 
 // Checking arrow existance between node1 and node2
@@ -106,3 +104,24 @@ func (filter *DirectedGraphArcsFilter) ConnectionsIter() <-chan Connection {
 	}()
 	return ch
 }
+
+///////////////////////////////////////////////////////////////////////////////
+/*
+// Arcs filter in MixedGraphReader
+//
+// This is arcs filter for MixedGraphReader. Initialize it with arcs, which need to be filtered
+// and they never appeared in GetAccessors, GetPredecessors, CheckArc and Iter functions.
+//
+// Be careful! Filter doesn't affect GetSources and GetSinks functions. Also it doesn't recalculate
+// dangling vertexes.
+type MixedGraphConnectionsFilter struct {
+	*DirectedGraphArcsFilter	
+}
+
+func NewMixedGraphArcsFilter(g DirectedGraphReader, arcs []Connection, edges []Connection) *DirectedGraphArcsFilter {
+	filter := &DirectedGraphArcsFilter{
+		DirectedGraphArcsFilter: NewDirectedGraphArcsFilter(g, arcs),
+	}
+	return filter
+}
+*/
