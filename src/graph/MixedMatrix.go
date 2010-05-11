@@ -469,7 +469,7 @@ func (gr *MixedMatrix) CheckArc(tail, head NodeId) bool {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Specific mixed graph functions
+// MixedGraphSpecificReader
 
 // Iterate over only undirected edges
 func (gr *MixedMatrix) EdgesIter() <-chan Connection {

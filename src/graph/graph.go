@@ -128,6 +128,26 @@ type UndirectedGraph interface {
 	UndirectedGraphEdgesReader
 }
 
+type MixedGraphSpecificReader interface {
+	// Iterate over only undirected edges
+	EdgesIter() <-chan Connection 
+	
+	// Iterate over only directed arcs
+	ArcsIter() <-chan Connection
+	
+	CheckEdgeType(tail, head NodeId) MixedConnectionType
+}
+
+type MixedGraphReader interface {
+	ConnectionsIterable
+	NodesIterable
+
+	GraphNodesReader
+	UndirectedGraphEdgesReader
+	DirectedGraphArcsReader
+	MixedGraphSpecificReader
+}
+
 type MixedGraph interface {
 	GraphNodesWriter
 	GraphNodesReader
@@ -142,13 +162,6 @@ type MixedGraph interface {
 
 	DirectedGraphArcsWriter
 	DirectedGraphArcsRemover
-	DirectedGraphArcsReader
-	
-	// Iterate over only undirected edges
-	EdgesIter() <-chan Connection 
-	
-	// Iterate over only directed arcs
-	ArcsIter() <-chan Connection
-	
-	CheckEdgeType(tail, head NodeId) MixedConnectionType
+	DirectedGraphArcsReader	
+	MixedGraphSpecificReader
 }

@@ -11,7 +11,7 @@ func ReduceDirectPaths(og DirectedGraphReader, rg DirectedGraphArcsWriter, stopF
 		} else {
 			checkStopFunc = nil
 		}
-		if !CheckPathDijkstra(filteredGraph, conn.Tail, conn.Head, checkStopFunc, SimpleWeightFunc) {
+		if !CheckDirectedPathDijkstra(filteredGraph, conn.Tail, conn.Head, checkStopFunc, SimpleWeightFunc) {
 			rg.AddArc(conn.Tail, conn.Head)
 		}
 	}
