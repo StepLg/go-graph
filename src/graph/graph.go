@@ -138,6 +138,7 @@ type MixedGraph interface {
 
 	UndirectedGraphEdgesWriter
 	UndirectedGraphEdgesRemover
+	UndirectedGraphEdgesReader
 
 	DirectedGraphArcsWriter
 	DirectedGraphArcsRemover
