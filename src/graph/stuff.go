@@ -175,3 +175,27 @@ func (q *nodesPriorityQueueSimple) Size() int {
 func (q *nodesPriorityQueueSimple) Empty() bool {
 	return q.Size()==0
 }
+
+type arcsToConnIterable_helper struct {
+	gr DirectedGraphArcsReader
+}
+
+func (helper *arcsToConnIterable_helper) ConnectionsIter() <-chan Connection {
+	return helper.gr.ArcsIter()
+}
+
+func ArcsToConnIterable(gr DirectedGraphArcsReader) ConnectionsIterable {
+	return &arcsToConnIterable_helper{gr}
+}
+
+type edgesToConnIterable_helper struct {
+	gr UndirectedGraphEdgesReader
+}
+
+func (helper *edgesToConnIterable_helper) ConnectionsIter() <-chan Connection {
+	return helper.gr.EdgesIter()
+}
+
+func EdgesToConnIterable(gr UndirectedGraphEdgesReader) ConnectionsIterable {
+	return &edgesToConnIterable_helper{gr}
+}

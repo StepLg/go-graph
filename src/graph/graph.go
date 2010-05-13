@@ -62,12 +62,14 @@ type DirectedGraphArcsReader interface {
 	//
 	// node1 and node2 must exist in graph or error will be returned
 	CheckArc(node1, node2 NodeId) bool
+	
+	// Iterate over graph arcs
+	ArcsIter() <-chan Connection
 }
 
 type DirectedGraphReader interface {
 	GraphNodesReader
 	DirectedGraphArcsReader
-	ConnectionsIterable
 	NodesIterable
 }
 
@@ -95,6 +97,9 @@ type UndirectedGraphEdgesReader interface {
 
 	// Getting all nodes, connected to given one
 	GetNeighbours(node NodeId) Nodes
+	
+	// Iterate over graph edges
+	EdgesIter() <-chan Connection
 }
 
 type UndirectedGraphEdgesWriter interface {
@@ -129,12 +134,6 @@ type UndirectedGraph interface {
 }
 
 type MixedGraphSpecificReader interface {
-	// Iterate over only undirected edges
-	EdgesIter() <-chan Connection 
-	
-	// Iterate over only directed arcs
-	ArcsIter() <-chan Connection
-	
 	CheckEdgeType(tail, head NodeId) MixedConnectionType
 }
 

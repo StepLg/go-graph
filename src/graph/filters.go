@@ -11,18 +11,18 @@ type DirectedGraphArcsFilter struct {
 }
 
 // Create arcs filter with array of filtering arcs
-func NewDirectedGraphArcsFilter(g DirectedGraphReader, arcs []Connection) *DirectedGraphArcsFilter {
+func NewDirectedGraphArcsFilter(g DirectedGraphArcsReader, arcs []Connection) *DirectedGraphArcsFilter {
 	filter := &DirectedGraphArcsFilter{
-		DirectedGraphReader: g,
+		DirectedGraphArcsReader: g,
 		arcs: arcs,
 	}
 	return filter
 }
 
 // Create arcs filter with single arc
-func NewDirectedGraphArcFilter(g DirectedGraphReader, tail, head NodeId) *DirectedGraphArcsFilter {
+func NewDirectedGraphArcFilter(g DirectedGraphArcsReader, tail, head NodeId) *DirectedGraphArcsFilter {
 	filter := &DirectedGraphArcsFilter{
-		DirectedGraphReader: g,
+		DirectedGraphArcsReader: g,
 		arcs: make([]Connection, 1),
 	}
 	filter.arcs[0].Tail = tail
@@ -32,7 +32,7 @@ func NewDirectedGraphArcFilter(g DirectedGraphReader, tail, head NodeId) *Direct
 
 // Getting node accessors
 func (filter *DirectedGraphArcsFilter) GetAccessors(node NodeId) Nodes {
-	accessors := filter.DirectedGraphReader.GetAccessors(node)
+	accessors := filter.DirectedGraphArcsReader.GetAccessors(node)
 	newAccessorsLen := len(accessors)
 	for _, filteringConnection := range filter.arcs {
 		if node == filteringConnection.Tail {
@@ -54,7 +54,7 @@ func (filter *DirectedGraphArcsFilter) GetAccessors(node NodeId) Nodes {
 
 // Getting node predecessors
 func (filter *DirectedGraphArcsFilter) GetPredecessors(node NodeId) Nodes {
-	predecessors := filter.DirectedGraphReader.GetAccessors(node)
+	predecessors := filter.DirectedGraphArcsReader.GetAccessors(node)
 	newPredecessorsLen := len(predecessors)
 	for _, filteringConnection := range filter.arcs {
 		if node == filteringConnection.Head {
@@ -78,7 +78,7 @@ func (filter *DirectedGraphArcsFilter) GetPredecessors(node NodeId) Nodes {
 //
 // node1 and node2 must exist in graph or error will be returned
 func (filter *DirectedGraphArcsFilter) CheckArc(node1, node2 NodeId) bool {
-	res := filter.DirectedGraphReader.CheckArc(node1, node2)
+	res := filter.DirectedGraphArcsReader.CheckArc(node1, node2)
 	if res {
 		for _, filteringConnection := range filter.arcs {
 			if filteringConnection.Tail==node1 && filteringConnection.Head==node2 {
@@ -93,7 +93,7 @@ func (filter *DirectedGraphArcsFilter) CheckArc(node1, node2 NodeId) bool {
 func (filter *DirectedGraphArcsFilter) ConnectionsIter() <-chan Connection {
 	ch := make(chan Connection)
 	go func() {
-		for conn := range filter.DirectedGraphReader.ConnectionsIter() {
+		for conn := range filter.DirectedGraphArcsReader.ArcsIter() {
 			for _, filteringConnection := range filter.arcs {
 				if filteringConnection.Head==conn.Head && filteringConnection.Tail==conn.Tail {
 					continue

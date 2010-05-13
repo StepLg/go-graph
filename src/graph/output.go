@@ -92,7 +92,7 @@ func PlotArcsToDot(connIter ConnectionsIterable, wr IWriter, styleFunc DotConnec
 func PlotDirectedGraphToDot(gr DirectedGraphReader, wr IWriter, nodeStyleFunc DotNodeStyleFunc, arcStyleFunc DotConnectionStyleFunc) {
 	wr.Write("digraph messages {\n")
 	PlotNodesToDot(gr, wr, nodeStyleFunc)
-	PlotArcsToDot(gr, wr, arcStyleFunc)
+	PlotArcsToDot(ArcsToConnIterable(gr), wr, arcStyleFunc)
 	wr.Write("}\n")
 }
 
