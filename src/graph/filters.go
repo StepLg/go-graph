@@ -278,3 +278,23 @@ func (filter *MixedGraphConnectionsFilter) TypedConnectionsIter() <-chan TypedCo
 	}()
 	return ch
 }
+
+func (filter *MixedGraphConnectionsFilter) CheckEdgeType(tail NodeId, head NodeId) MixedConnectionType {
+	res := filter.gr.CheckEdgeType(tail, head)
+	if res!=CT_NONE {
+		switch res {
+			case CT_UNDIRECTED:
+				if filter.UndirectedGraphEdgesFilter.IsEdgeFiltering(tail, head) {
+					res = CT_NONE
+				}
+			case CT_DIRECTED:
+				if filter.DirectedGraphArcsFilter.IsArcFiltering(tail, head) {
+					res = CT_NONE
+				}
+			default: 
+				err := erx.NewError("Internal error: got unknown mixed connection type")
+				panic(err)
+		}
+	}
+	return res
+}
