@@ -32,8 +32,41 @@ func DirectedGraphArcsFilterSpec(c gospec.Context) {
 			c.Expect(f.GetPredecessors(NodeId(fhead)), Not(Contains), ftail)
 		})
 		c.Specify("shouldn't appear in iterator", func() {
-			for conn := range f.ConnectionsIter() {
+			for conn := range f.ArcsIter() {
 				c.Expect(conn.Tail==ftail && conn.Head==fhead, IsFalse)
+			}
+		})
+	})
+}
+
+func UndirectedGraphEdgesFilterSpec(c gospec.Context) {
+	gr := NewUndirectedMap()
+	gr.AddEdge(1, 2)
+	gr.AddEdge(2, 3)
+	gr.AddEdge(3, 4)
+	gr.AddEdge(2, 4)
+	gr.AddEdge(4, 5)
+	gr.AddEdge(1, 6)
+	gr.AddEdge(2, 6)
+
+	c.Specify("Single filtered arc", func() {
+		ftail := NodeId(3)
+		fhead := NodeId(2)
+		f := NewUndirectedGraphEdgeFilter(gr, ftail, fhead)
+		
+		c.Specify("shouldn't be checked", func() {
+			c.Expect(f.CheckEdge(ftail, fhead), IsFalse)
+			c.Expect(f.CheckEdge(fhead, ftail), IsFalse)
+		})
+		
+		c.Specify("shouldn't appear in neighbours", func() {
+			c.Expect(f.GetNeighbours(NodeId(ftail)), Not(Contains), fhead)
+			c.Expect(f.GetNeighbours(NodeId(fhead)), Not(Contains), ftail)
+		})
+		c.Specify("shouldn't appear in iterator", func() {
+			for conn := range f.EdgesIter() {
+				// iter always retur min node id as tail and max node id as head
+				c.Expect(conn.Tail==fhead && conn.Head==ftail, IsFalse)
 			}
 		})
 	})
