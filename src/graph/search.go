@@ -13,9 +13,9 @@ func SimpleWeightFunc(head, tail NodeId) float {
 	return 1.0
 }
 
-type CheckDirectedPath func(gr DirectedGraphReader, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool
+type CheckDirectedPath func(gr DirectedGraphArcsReader, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool
 
-func CheckDirectedPathDijkstra(gr DirectedGraphReader, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool {
+func CheckDirectedPathDijkstra(gr DirectedGraphArcsReader, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool {
 	defer func() {
 		if e:=recover(); e!=nil {
 			err := erx.NewSequent("Check path in directed graph with Dijkstra algorithm", e)
@@ -29,7 +29,7 @@ func CheckDirectedPathDijkstra(gr DirectedGraphReader, from, to NodeId, stopFunc
 		return true
 	}
 	
-	q := newPriorityQueueSimple(gr.NodesCnt())
+	q := newPriorityQueueSimple(10)
 	q.Add(from, 0)
 	
 	for !q.Empty() {

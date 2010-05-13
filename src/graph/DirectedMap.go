@@ -23,16 +23,7 @@ func NewDirectedMap() *DirectedMap {
 // ConnectionsIterable
 
 func (g *DirectedMap) ConnectionsIter() <-chan Connection {
-	ch := make(chan Connection)
-	go func() {
-		for from, connectedNodes := range g.directArcs {
-			for to, _ := range connectedNodes {
-				ch <- Connection{from, to}
-			}
-		}
-		close(ch)
-	}()
-	return ch
+	return g.ArcsIter()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -281,4 +272,17 @@ func (g *DirectedMap) CheckArc(from, to NodeId) (isExist bool) {
 	_, isExist = connectedNodes[to]
 
 	return
+}
+
+func (g *DirectedMap) ArcsIter() <-chan Connection {
+	ch := make(chan Connection)
+	go func() {
+		for from, connectedNodes := range g.directArcs {
+			for to, _ := range connectedNodes {
+				ch <- Connection{from, to}
+			}
+		}
+		close(ch)
+	}()
+	return ch
 }

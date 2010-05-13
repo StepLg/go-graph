@@ -19,7 +19,7 @@ func DirectedGraphArcsFilterSpec(c gospec.Context) {
 	c.Specify("Single filtered arc", func() {
 		ftail := NodeId(2)
 		fhead := NodeId(3)
-		f := NewArcFilter(gr, ftail, fhead)
+		f := NewDirectedGraphArcFilter(gr, ftail, fhead)
 		
 		c.Specify("shouldn't be checked", func() {
 			c.Expect(f.CheckArc(ftail, fhead), IsFalse)

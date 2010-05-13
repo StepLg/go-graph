@@ -20,20 +20,7 @@ func NewUndirectedMap() *UndirectedMap {
 // ConnectionsIterable
 
 func (g *UndirectedMap) ConnectionsIter() <-chan Connection {
-	ch := make(chan Connection)
-	go func() {
-		for from, connectedNodes := range g.edges {
-			for to, _ := range connectedNodes {
-				if from<to {
-					// each edge has a duplicate, so we need to 
-					// push only one edge to channel
-					ch <- Connection{from, to}
-				}
-			}
-		}
-		close(ch)
-	}()
-	return ch
+	return g.EdgesIter()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -204,4 +191,21 @@ func (g *UndirectedMap) CheckEdge(from, to NodeId) (isExist bool) {
 	_, isExist = connectedNodes[to]
 	
 	return
+}
+
+func (g *UndirectedMap) EdgesIter() <-chan Connection {
+	ch := make(chan Connection)
+	go func() {
+		for from, connectedNodes := range g.edges {
+			for to, _ := range connectedNodes {
+				if from<to {
+					// each edge has a duplicate, so we need to 
+					// push only one edge to channel
+					ch <- Connection{from, to}
+				}
+			}
+		}
+		close(ch)
+	}()
+	return ch
 }

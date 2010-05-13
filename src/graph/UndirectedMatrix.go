@@ -38,18 +38,7 @@ func (g *UndirectedMatrix) GetCapacity() int {
 // ConnectionsIterable
 
 func (g *UndirectedMatrix) ConnectionsIter() <-chan Connection {
-	ch := make(chan Connection)
-	go func() {
-		for from, _ := range g.nodeIds {
-			for to, _ := range g.nodeIds {
-				if from<to && g.CheckEdge(from, to) {
-					ch <- Connection{from, to}
-				}
-			}
-		}
-		close(ch)
-	}()
-	return ch
+	return g.EdgesIter()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -215,6 +204,21 @@ func (g *UndirectedMatrix) GetNeighbours(node NodeId) Nodes {
 	}
 	
 	return result[0:ind]
+}
+
+func (g *UndirectedMatrix) EdgesIter() <-chan Connection {
+	ch := make(chan Connection)
+	go func() {
+		for from, _ := range g.nodeIds {
+			for to, _ := range g.nodeIds {
+				if from<to && g.CheckEdge(from, to) {
+					ch <- Connection{from, to}
+				}
+			}
+		}
+		close(ch)
+	}()
+	return ch
 }
 
 func (g *UndirectedMatrix) CheckEdge(node1, node2 NodeId) bool {
