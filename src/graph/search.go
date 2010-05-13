@@ -58,9 +58,9 @@ func CheckDirectedPathDijkstra(gr DirectedGraphArcsReader, from, to NodeId, stop
 	return false
 }
 
-type CheckMixedPath func(gr MixedGraphReader, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool
+type CheckMixedPath func(gr MixedGraphConnectionsReader, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool
 
-func CheckMixedPathDijkstra(gr MixedGraphReader, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool {
+func CheckMixedPathDijkstra(gr MixedGraphConnectionsReader, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool {
 	defer func() {
 		if e:=recover(); e!=nil {
 			err := erx.NewSequent("Check path in mixed graph with Dijkstra algorithm", e)
@@ -74,7 +74,7 @@ func CheckMixedPathDijkstra(gr MixedGraphReader, from, to NodeId, stopFunc StopF
 		return true
 	}
 	
-	q := newPriorityQueueSimple(gr.NodesCnt())
+	q := newPriorityQueueSimple(10)
 	q.Add(from, 0)
 	
 	for !q.Empty() {
