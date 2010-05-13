@@ -74,15 +74,15 @@ type nodesPriorityQueueSimple struct {
 // Create new simple nodes priority queue
 //
 // size is maximum number of nodes, which queue can store simultaneously
-func newPriorityQueueSimple(size int) *nodesPriorityQueueSimple {
-	if size<=0 {
+func newPriorityQueueSimple(initialSize int) *nodesPriorityQueueSimple {
+	if initialSize<=0 {
 		err := erx.NewError("Can't create priority queue with non-positive size.")
-		err.AddV("size", size)
+		err.AddV("size", initialSize)
 		panic(err)
 	}
 	
 	q := &nodesPriorityQueueSimple {
-		data: make(nodesPriority, size),
+		data: make(nodesPriority, initialSize),
 		nodesIndex: make(map[NodeId]int),
 		size: 0,
 	}
@@ -122,9 +122,11 @@ func (q *nodesPriorityQueueSimple) Add(node NodeId, priority float) {
 
 	if !found {
 		if q.size==len(q.data) {
-			err := erx.NewError("Not enough space to add new node.")
-			err.AddV("size", len(q.data))
-			panic(err)
+			// resize
+			// 2 is just a magic number
+			newData := make(nodesPriority, 2*len(q.data))
+			copy(newData, q.data)
+			q.data = newData
 		}
 		id := 0
 		for q.data[id].Priority<priority && id<q.size {

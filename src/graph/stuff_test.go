@@ -127,6 +127,49 @@ func NodesPriorityQueueSpec(c gospec.Context) {
 			c.Expect(prior, Equals, p3)
 		})
 	})
+	
+	c.Specify("Push more items than initial size", func() {
+		n1 := NodeId(1)
+		p1 := 1.0
+		n2 := NodeId(2)
+		p2 := 2.0
+		n3 := NodeId(3)
+		p3 := 0.5
+		n4 := NodeId(4)
+		p4 := 1.5
+		n5 := NodeId(6)
+		p5 := 1.6
+		n6 := NodeId(7)
+		p6 := 1.7
+		
+		
+		q.Add(n1, p1)
+		q.Add(n2, p2)
+		q.Add(n3, p3)
+		q.Add(n4, p4)
+		q.Add(n5, p5)
+		q.Add(n6, p6)
+		
+		c.Expect(q.Size(), Equals, 6)
+		node, prior := q.Next(); 
+		c.Expect(node, Equals, n2)
+		c.Expect(prior, Equals, p2)
+		node, prior = q.Next(); 
+		c.Expect(node, Equals, n6)
+		c.Expect(prior, Equals, p6)
+		node, prior = q.Next(); 
+		c.Expect(node, Equals, n5)
+		c.Expect(prior, Equals, p5)
+		node, prior = q.Next(); 
+		c.Expect(node, Equals, n4)
+		c.Expect(prior, Equals, p4)
+		node, prior = q.Next(); 
+		c.Expect(node, Equals, n1)
+		c.Expect(prior, Equals, p1)
+		node, prior = q.Next(); 
+		c.Expect(node, Equals, n3)
+		c.Expect(prior, Equals, p3)
+	})
 }
 
 func TestStuff(t *testing.T) {
