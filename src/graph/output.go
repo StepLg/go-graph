@@ -80,19 +80,19 @@ func PlotNodesToDot(nodesIter NodesIterable, wr IWriter, styleFunc DotNodeStyleF
 	}
 }
 
-func PlotArcsToDot(connIter ConnectionsIterable, wr IWriter, styleFunc DotConnectionStyleFunc) {
-	for conn := range connIter.ConnectionsIter() {
+func PlotArcsToDot(connIter TypedConnectionsIterable, wr IWriter, styleFunc DotConnectionStyleFunc) {
+	for conn := range connIter.TypedConnectionsIter() {
 		wr.Write(fmt.Sprintf("n%v->n%v%v;\n", 
 			conn.Tail.String(),
 			conn.Head.String(),
-			styleMapToString(styleFunc(conn))))
+			styleMapToString(styleFunc(conn.Connection))))
 	}
 }
 
 func PlotDirectedGraphToDot(gr DirectedGraphReader, wr IWriter, nodeStyleFunc DotNodeStyleFunc, arcStyleFunc DotConnectionStyleFunc) {
 	wr.Write("digraph messages {\n")
 	PlotNodesToDot(gr, wr, nodeStyleFunc)
-	PlotArcsToDot(ArcsToConnIterable(gr), wr, arcStyleFunc)
+	PlotArcsToDot(ArcsToTypedConnIterable(gr), wr, arcStyleFunc)
 	wr.Write("}\n")
 }
 

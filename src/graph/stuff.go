@@ -201,3 +201,39 @@ func (helper *edgesToConnIterable_helper) ConnectionsIter() <-chan Connection {
 func EdgesToConnIterable(gr UndirectedGraphEdgesReader) ConnectionsIterable {
 	return &edgesToConnIterable_helper{gr}
 }
+
+type arcsToTypedConnIterable_helper struct {
+	gr DirectedGraphArcsReader
+}
+
+func (helper *arcsToTypedConnIterable_helper) TypedConnectionsIter() <-chan TypedConnection {
+	ch := make(chan TypedConnection)
+	go func() {
+		for conn := range helper.gr.ArcsIter() {
+			ch <- TypedConnection{Connection: conn, Type: CT_DIRECTED}
+		}
+	}()
+	return ch
+}
+
+func ArcsToTypedConnIterable(gr DirectedGraphArcsReader) TypedConnectionsIterable {
+	return &arcsToTypedConnIterable_helper{gr}
+}
+
+type edgesToTypedConnIterable_helper struct {
+	gr UndirectedGraphEdgesReader
+}
+
+func (helper *edgesToTypedConnIterable_helper) TypedConnectionsIter() <-chan TypedConnection {
+	ch := make(chan TypedConnection)
+	go func() {
+		for conn := range helper.gr.EdgesIter() {
+			ch <- TypedConnection{Connection: conn, Type: CT_UNDIRECTED}
+		}
+	}()
+	return ch
+}
+
+func EdgesToTypedConnIterable(gr UndirectedGraphEdgesReader) TypedConnectionsIterable {
+	return &edgesToTypedConnIterable_helper{gr}
+}

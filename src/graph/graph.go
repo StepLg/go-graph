@@ -9,8 +9,17 @@ type Connection struct {
 	Head NodeId
 }
 
+type TypedConnection struct {
+	Connection
+	Type MixedConnectionType
+}
+
 type ConnectionsIterable interface {
 	ConnectionsIter() <-chan Connection
+}
+
+type TypedConnectionsIterable interface {
+	TypedConnectionsIter() <-chan TypedConnection
 }
 
 type NodesIterable interface {
@@ -135,17 +144,23 @@ type UndirectedGraph interface {
 
 type MixedGraphSpecificReader interface {
 	CheckEdgeType(tail, head NodeId) MixedConnectionType
+	TypedConnectionsIterable
 }
 
-type MixedGraphReader interface {
+type MixedGraphConnectionsReader interface {
 	ConnectionsIterable
-	NodesIterable
-
-	GraphNodesReader
 	UndirectedGraphEdgesReader
 	DirectedGraphArcsReader
 	MixedGraphSpecificReader
 }
+
+type MixedGraphReader interface {
+	MixedGraphConnectionsReader
+
+	NodesIterable
+	GraphNodesReader
+}
+
 
 type MixedGraph interface {
 	GraphNodesWriter

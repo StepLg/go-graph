@@ -1,5 +1,9 @@
 package graph
 
+import (
+	"github.com/StepLg/go-erx/src/erx"
+)
+
 // Arcs filter in DirectedGraphReader
 //
 // This is arcs filter for DirectedGraphReader. Initialize it with arcs, which need to be filtered
@@ -94,15 +98,22 @@ func (filter *DirectedGraphArcsFilter) ArcsIter() <-chan Connection {
 	ch := make(chan Connection)
 	go func() {
 		for conn := range filter.DirectedGraphArcsReader.ArcsIter() {
-			for _, filteringConnection := range filter.arcs {
-				if filteringConnection.Head==conn.Head && filteringConnection.Tail==conn.Tail {
-					continue
-				}
+			if filter.IsArcFiltering(conn.Tail, conn.Head) {
+				continue
 			}
 		}
 		close(ch)
 	}()
 	return ch
+}
+
+func (filter *DirectedGraphArcsFilter) IsArcFiltering(tail, head NodeId) bool {
+	for _, filteringConnection := range filter.arcs {
+		if filteringConnection.Head==head && filteringConnection.Tail==tail {
+			return true
+		}
+	}
+	return false
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -193,10 +204,8 @@ func (filter *UndirectedGraphEdgesFilter) EdgesIter() <-chan Connection {
 	ch := make(chan Connection)
 	go func() {
 		for conn := range filter.UndirectedGraphEdgesReader.EdgesIter() {
-			for _, filteringConnection := range filter.edges {
-				if filteringConnection.Head==conn.Head && filteringConnection.Tail==conn.Tail {
-					continue
-				}
+			if filter.IsEdgeFiltering(conn.Tail, conn.Head) {
+				continue
 			}
 		}
 		close(ch)
@@ -204,23 +213,68 @@ func (filter *UndirectedGraphEdgesFilter) EdgesIter() <-chan Connection {
 	return ch
 }
 
-///////////////////////////////////////////////////////////////////////////////
-/*
-// Arcs filter in MixedGraphReader
-//
-// This is arcs filter for MixedGraphReader. Initialize it with arcs, which need to be filtered
-// and they never appeared in GetAccessors, GetPredecessors, CheckArc and Iter functions.
-//
-// Be careful! Filter doesn't affect GetSources and GetSinks functions. Also it doesn't recalculate
-// dangling vertexes.
-type MixedGraphConnectionsFilter struct {
-	*DirectedGraphArcsFilter	
+func (filter *UndirectedGraphEdgesFilter) IsEdgeFiltering(tail, head NodeId) bool {
+	if head<tail {
+		tail, head = head, tail
+	}
+	for _, filteringConnection := range filter.edges {
+		if filteringConnection.Head==head && filteringConnection.Tail==tail {
+			return true
+		}
+	}
+	return false
 }
 
-func NewMixedGraphArcsFilter(g DirectedGraphReader, arcs []Connection, edges []Connection) *DirectedGraphArcsFilter {
-	filter := &DirectedGraphArcsFilter{
+///////////////////////////////////////////////////////////////////////////////
+
+// Arcs filter in MixedGraphReader
+//
+// This is arcs filter for MixedGraphReader.
+type MixedGraphConnectionsFilter struct {
+	gr MixedGraphConnectionsReader
+	*DirectedGraphArcsFilter
+	*UndirectedGraphEdgesFilter
+}
+
+func NewMixedGraphArcsFilter(g MixedGraphConnectionsReader, arcs []Connection, edges []Connection) *MixedGraphConnectionsFilter {
+	filter := &MixedGraphConnectionsFilter{
+		gr: g,
 		DirectedGraphArcsFilter: NewDirectedGraphArcsFilter(g, arcs),
+		UndirectedGraphEdgesFilter: NewUndirectedGraphEdgesFilter(g, edges),
 	}
 	return filter
 }
-*/
+
+func (filter *MixedGraphConnectionsFilter) ConnectionsIter() <-chan Connection {
+	ch := make(chan Connection)
+	go func() {
+		for conn := range filter.TypedConnectionsIter() {
+			ch <- conn.Connection
+		}
+		close(ch)
+	}()
+	return ch
+}
+
+func (filter *MixedGraphConnectionsFilter) TypedConnectionsIter() <-chan TypedConnection {
+	ch := make(chan TypedConnection)
+	go func() {
+		for conn := range filter.gr.TypedConnectionsIter() {
+			needToFilter := false
+			switch conn.Type {
+				case CT_UNDIRECTED:
+					needToFilter = filter.UndirectedGraphEdgesFilter.IsEdgeFiltering(conn.Tail, conn.Head)
+				case CT_DIRECTED:
+					needToFilter = filter.DirectedGraphArcsFilter.IsArcFiltering(conn.Tail, conn.Head)
+				default: 
+					err := erx.NewError("Internal error: got unknown mixed connection type")
+					panic(err)
+			}
+			if !needToFilter {
+				ch <- conn
+			}
+		}
+		close(ch)
+	}()
+	return ch
+}

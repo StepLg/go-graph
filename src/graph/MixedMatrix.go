@@ -529,6 +529,39 @@ func (gr *MixedMatrix) CheckEdgeType(tail NodeId, head NodeId) MixedConnectionTy
 	return gr.nodes[conn]
 }
 
+func (gr *MixedMatrix) TypedConnectionsIter() <-chan TypedConnection {
+	ch := make(chan TypedConnection)
+	go func() {
+		for from, _ := range gr.nodeIds {
+			for to, _ := range gr.nodeIds {
+				if from>=to {
+					continue
+				}
+				
+				conn := gr.getConnectionId(from, to, false)
+				switch gr.nodes[conn] {
+					case CT_NONE:
+					case CT_UNDIRECTED:
+						ch <- TypedConnection{Connection:Connection{Tail: from, Head:to}, Type:CT_UNDIRECTED} 
+					case CT_DIRECTED:
+						ch <- TypedConnection{Connection:Connection{Tail: from, Head:to}, Type:CT_DIRECTED}
+					case CT_DIRECTED_REVERSED:
+						ch <- TypedConnection{Connection:Connection{Tail: to, Head:from}, Type:CT_DIRECTED}
+					default:
+						err := erx.NewError("Internal error: wrong connection type in mixed graph matrix")
+						err.AddV("connection type", gr.nodes[conn])
+						err.AddV("connection id", conn)
+						err.AddV("tail node", from)
+						err.AddV("head node", to)
+						panic(err)
+				}
+			}
+		}
+		close(ch)
+	}()
+	return ch
+}
+
 func (gr *MixedMatrix) getConnectionId(node1, node2 NodeId, create bool) int {
 	defer func() {
 		if e := recover(); e!=nil {
