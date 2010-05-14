@@ -76,7 +76,7 @@ func styleMapToString(style map[string]string) string {
 }
 
 type DotNodeStyleFunc func(node NodeId) map[string]string
-type DotConnectionStyleFunc func(conn Connection) map[string]string
+type DotConnectionStyleFunc func(conn TypedConnection) map[string]string
 
 func SimpleNodeStyle(node NodeId) map[string]string {
 	style := make(map[string]string)
@@ -99,7 +99,7 @@ func PlotArcsToDot(connIter TypedConnectionsIterable, wr IWriter, styleFunc DotC
 		wr.Write(fmt.Sprintf("n%v->n%v%v;\n", 
 			conn.Tail.String(),
 			conn.Head.String(),
-			styleMapToString(styleFunc(conn.Connection))))
+			styleMapToString(styleFunc(conn))))
 	}
 }
 
