@@ -26,12 +26,18 @@ type NodesIterable interface {
 	NodesIter() <-chan NodeId
 }
 
+type NodesChecker interface {
+	// Check node existance in graph
+	CheckNode(node NodeId) bool
+}
+
 type GraphNodesWriter interface {
 	// Adding single node to graph
 	AddNode(node NodeId)
 }
 
 type GraphNodesReader interface {
+	NodesChecker
 	// Getting nodes count in graph
 	NodesCnt() int
 }
@@ -161,6 +167,11 @@ type MixedGraphReader interface {
 	GraphNodesReader
 }
 
+type MixedGraphWriter interface {
+	GraphNodesWriter
+	UndirectedGraphEdgesWriter
+	DirectedGraphArcsWriter
+}
 
 type MixedGraph interface {
 	GraphNodesWriter
@@ -177,5 +188,6 @@ type MixedGraph interface {
 	DirectedGraphArcsWriter
 	DirectedGraphArcsRemover
 	DirectedGraphArcsReader	
+
 	MixedGraphSpecificReader
 }

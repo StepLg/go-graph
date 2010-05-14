@@ -99,6 +99,14 @@ func (gr *MixedMatrix) NodesIter() <-chan NodeId {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// NodesChecker
+
+func (g *MixedMatrix) CheckNode(node NodeId) (exists bool) {
+	_, exists = g.nodeIds[node]
+	return
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // UndirectedGraphEdgesWriter
 
 // Adding new edge to graph

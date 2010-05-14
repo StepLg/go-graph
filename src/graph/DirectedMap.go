@@ -48,6 +48,14 @@ func (g *DirectedMap) NodesIter() <-chan NodeId {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// NodesChecker
+
+func (g *DirectedMap) CheckNode(node NodeId) (exists bool) {
+	_, exists = g.directArcs[node]
+	return
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // GraphNodesWriter
 
 // Adding single node to graph

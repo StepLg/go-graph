@@ -38,6 +38,14 @@ func (g *UndirectedMap) NodesIter() <-chan NodeId {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// NodesChecker
+
+func (g *UndirectedMap) CheckNode(node NodeId) (exists bool) {
+	_, exists = g.edges[node]
+	return
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // UndirectedGraphNodesWriter
 
 // Adding single node to graph

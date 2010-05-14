@@ -56,6 +56,14 @@ func (g *UndirectedMatrix) NodesIter() <-chan NodeId {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// NodesChecker
+
+func (g *UndirectedMatrix) CheckNode(node NodeId) (exists bool) {
+	_, exists = g.nodeIds[node]
+	return
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // UndirectedGraphNodesWriter
 
 // Adding single node to graph
