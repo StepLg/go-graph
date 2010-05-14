@@ -69,7 +69,7 @@ func styleMapToString(style map[string]string) string {
 	chunks := make([]string, len(style))
 	i := 0
 	for k, v := range style {
-		chunks[i] = fmt.Sprintf("%v=%v", k, v)
+		chunks[i] = fmt.Sprintf("%v=\"%v\"", k, v)
 		i++
 	}
 	return "[" + strings.Join(chunks, ",") + "]"
