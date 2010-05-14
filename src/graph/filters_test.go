@@ -54,6 +54,11 @@ func UndirectedGraphEdgesFilterSpec(c gospec.Context) {
 		fhead := NodeId(2)
 		f := NewUndirectedGraphEdgeFilter(gr, ftail, fhead)
 		
+		c.Specify("should be filtered", func() {
+			c.Expect(f.IsEdgeFiltering(ftail, fhead), IsTrue)
+			c.Expect(f.IsEdgeFiltering(fhead, ftail), IsTrue)
+		})
+		
 		c.Specify("shouldn't be checked", func() {
 			c.Expect(f.CheckEdge(ftail, fhead), IsFalse)
 			c.Expect(f.CheckEdge(fhead, ftail), IsFalse)

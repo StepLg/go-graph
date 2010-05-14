@@ -136,9 +136,9 @@ func NewUndirectedGraphEdgesFilter(g UndirectedGraphEdgesReader, edges []Connect
 	}
 
 	// all tails must be not greater than heads
-	for _, conn := range edges {
-		if conn.Tail>conn.Head {
-			conn.Tail, conn.Head = conn.Head, conn.Tail
+	for i:=0; i<len(filter.edges); i++ {
+		if filter.edges[i].Tail>filter.edges[i].Head {
+			filter.edges[i].Tail, filter.edges[i].Head = filter.edges[i].Head, filter.edges[i].Tail
 		}
 	}
 	return filter
