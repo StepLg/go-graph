@@ -49,7 +49,7 @@ func CheckDirectedPathDijkstra(gr DirectedGraphArcsReader, from, to NodeId, stop
 				panic(err)
 			}
 			nextWeight := curWeight + arcWeight
-			if stopFunc==nil || stopFunc(nextNode, nextWeight) {
+			if stopFunc==nil || !stopFunc(nextNode, nextWeight) {
 				q.Add(nextNode, -nextWeight)
 			}
 		}
@@ -110,7 +110,7 @@ func CheckMixedPathDijkstra(gr MixedGraphConnectionsReader, from, to NodeId, sto
 				panic(err)
 			}
 			nextWeight := curWeight + arcWeight
-			if stopFunc==nil || stopFunc(nextNode, nextWeight) {
+			if stopFunc==nil || !stopFunc(nextNode, nextWeight) {
 				q.Add(nextNode, -nextWeight)
 			}
 		}
