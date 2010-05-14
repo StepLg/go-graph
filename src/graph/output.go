@@ -15,6 +15,20 @@ func (conn Connection) String() string {
 	return fmt.Sprintf("%v->%v", conn.Tail, conn.Head)
 }
 
+func (conn TypedConnection) String() string {
+	switch conn.Type {
+		case CT_UNDIRECTED:
+			return fmt.Sprintf("%v--%v", conn.Tail, conn.Head)
+		case CT_DIRECTED:
+			return fmt.Sprintf("%v->%v", conn.Tail, conn.Head)
+		case CT_DIRECTED_REVERSED:
+			return fmt.Sprintf("%v<-%v", conn.Tail, conn.Head)
+		case CT_NONE:
+			return fmt.Sprintf("%v><%v", conn.Tail, conn.Head)
+	}
+	return fmt.Sprintf("%v!!%v", conn.Tail, conn.Head)
+}
+
 type IWriter interface {
 	Write(s string)
 }
