@@ -98,8 +98,8 @@ func (filter *DirectedGraphArcsFilter) ArcsIter() <-chan Connection {
 	ch := make(chan Connection)
 	go func() {
 		for conn := range filter.DirectedGraphArcsReader.ArcsIter() {
-			if filter.IsArcFiltering(conn.Tail, conn.Head) {
-				continue
+			if !filter.IsArcFiltering(conn.Tail, conn.Head) {
+				ch <- conn
 			}
 		}
 		close(ch)
@@ -192,8 +192,8 @@ func (filter *UndirectedGraphEdgesFilter) EdgesIter() <-chan Connection {
 	ch := make(chan Connection)
 	go func() {
 		for conn := range filter.UndirectedGraphEdgesReader.EdgesIter() {
-			if filter.IsEdgeFiltering(conn.Tail, conn.Head) {
-				continue
+			if !filter.IsEdgeFiltering(conn.Tail, conn.Head) {
+				ch <- conn
 			}
 		}
 		close(ch)
