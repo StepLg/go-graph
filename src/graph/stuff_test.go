@@ -172,8 +172,23 @@ func NodesPriorityQueueSpec(c gospec.Context) {
 	})
 }
 
+func MatrixIndexerSpec(c gospec.Context) {
+	size := 100
+	usedIds := make(map[int]bool)
+	nodesIds := make(map[NodeId]int)
+	for i:=0; i<size; i++ {
+		for j:=0; j<i; j++ {
+			connId := matrixConnectionsIndexer(NodeId(i), NodeId(j), nodesIds, size, true)
+			_, ok := usedIds[connId]
+			c.Expect(ok, IsFalse)
+			usedIds[connId] = true
+		}
+	}
+}
+
 func TestStuff(t *testing.T) {
 	r := gospec.NewRunner()
 	r.AddSpec(NodesPriorityQueueSpec)
+	r.AddSpec(MatrixIndexerSpec)
 	gospec.MainGoTest(r, t)
 }

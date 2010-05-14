@@ -201,6 +201,67 @@ func (q *nodesPriorityQueueSimple) Empty() bool {
 	return q.Size()==0
 }
 
+func matrixConnectionsIndexer(node1, node2 NodeId, nodeIds map[NodeId]int, size int, create bool) int {
+	defer func() {
+		if e := recover(); e!=nil {
+			err := erx.NewSequent("Calculating connection id.", e)
+			err.AddV("node 1", node1)
+			err.AddV("node 2", node2)
+			panic(err)
+		}
+	}()
+	
+	var id1, id2 int
+	node1Exist := false
+	node2Exist := false
+	id1, node1Exist = nodeIds[node1]
+	id2, node2Exist = nodeIds[node2]
+	
+	// checking for errors
+	{
+		if node1==node2 {
+			panic(erx.NewError("Equal nodes."))
+		}
+		if !create {
+			if !node1Exist {
+				panic(erx.NewError("First node doesn't exist in graph"))
+			}
+			if !node2Exist {
+				panic(erx.NewError("Second node doesn't exist in graph"))
+			}
+		} else if !node1Exist || !node2Exist {
+			if node1Exist && node2Exist {
+				if size - len(nodeIds) < 2 {
+					panic(erx.NewError("Not enough space to create two new nodes."))
+				}
+			} else {
+				if size - len(nodeIds) < 1 {
+					panic(erx.NewError("Not enough space to create new node."))
+				}
+			}
+		}
+	}
+	
+	if !node1Exist {
+		id1 = int(len(nodeIds))
+		nodeIds[node1] = id1
+	}
+
+	if !node2Exist {
+		id2 = int(len(nodeIds))
+		nodeIds[node2] = id2
+	}
+	
+	// switching id1, id2 in order to id1 < id2
+	if id1>id2 {
+		id1, id2 = id2, id1
+	}
+	
+	// id from upper triangle matrix, stored in vector
+	connId := id1*(size-1) + id2 - 1 - id1*(id1+1)/2
+	return connId 
+}
+
 type arcsToConnIterable_helper struct {
 	gr DirectedGraphArcsReader
 }
