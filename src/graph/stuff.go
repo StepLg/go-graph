@@ -24,6 +24,29 @@ func (t MixedConnectionType) String() string {
 	return "unknown"
 }
 
+func NewUndirectedConnection(n1, n2 NodeId) TypedConnection {
+	if n1>n2 {
+		n1, n2 = n2, n1
+	}
+	return TypedConnection {
+		Connection: Connection {
+			Tail: n1,
+			Head: n2,
+		},
+		Type: CT_UNDIRECTED,
+	}
+}
+
+func NewDirectedConnection(tail, head NodeId) TypedConnection {
+	return TypedConnection {
+		Connection: Connection {
+			Tail: tail,
+			Head: head,
+		},
+		Type: CT_DIRECTED,
+	}
+}
+
 // internal struct to store node with it's priority for priority queue
 type priority_data_t struct {
 	Node NodeId
