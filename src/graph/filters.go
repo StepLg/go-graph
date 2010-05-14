@@ -166,19 +166,12 @@ func NewUndirectedGraphEdgeFilter(g UndirectedGraphEdgesReader, tail, head NodeI
 func (filter *UndirectedGraphEdgesFilter) GetNeighbours(node NodeId) Nodes {
 	neighbours := filter.UndirectedGraphEdgesReader.GetNeighbours(node)
 	newNeighboursLen := len(neighbours)
-	for _, filteringConnection := range filter.edges {
-		if node == filteringConnection.Tail {
-			// need to remove filtering edge
-			k := 0
-			for k=0; k<newNeighboursLen; k++ {
-				if neighbours[k]==filteringConnection.Head {
-					break
-				}
-			}
-			if k<newNeighboursLen {
-				copy(neighbours[k:newNeighboursLen-1], neighbours[k+1:newNeighboursLen])
-				newNeighboursLen--
-			}
+	k := 0
+	for k=0; k<newNeighboursLen; k++ {
+		if filter.IsEdgeFiltering(node, neighbours[k]) {
+			copy(neighbours[k:newNeighboursLen-1], neighbours[k+1:newNeighboursLen])
+			k--
+			newNeighboursLen--
 		}
 	}
 	return neighbours[0:newNeighboursLen]
@@ -190,12 +183,7 @@ func (filter *UndirectedGraphEdgesFilter) GetNeighbours(node NodeId) Nodes {
 func (filter *UndirectedGraphEdgesFilter) CheckEdge(node1, node2 NodeId) bool {
 	res := filter.UndirectedGraphEdgesReader.CheckEdge(node1, node2)
 	if res {
-		for _, filteringConnection := range filter.edges {
-			if filteringConnection.Tail==node1 && filteringConnection.Head==node2 {
-				res = false
-				break
-			}
-		}
+		res = !filter.IsEdgeFiltering(node1, node2)
 	}
 	return res
 }
