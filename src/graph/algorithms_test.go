@@ -3,7 +3,7 @@ package graph
 import (
 	"testing"
 	"github.com/orfjackal/gospec/src/gospec"
-	// . "github.com/orfjackal/gospec/src/gospec"
+	. "github.com/orfjackal/gospec/src/gospec"
 )
 
 func ReduceDirectPathsSpec(c gospec.Context) {
@@ -45,8 +45,26 @@ func ReduceDirectPathsSpec(c gospec.Context) {
 	})
 }
 
+func TopologicalSortSpec(c gospec.Context) {
+	gr := NewDirectedMap()
+	c.Specify("Single node graph", func() {
+		gr.AddNode(NodeId(1))
+		nodes, hasCycle := TopologicalSort(gr)
+		c.Expect(hasCycle, IsFalse)
+		c.Expect(nodes, ContainsExactly, Values(NodeId(1)))
+	})
+	
+	c.Specify("Simple two nodes graph", func() {
+		gr.AddArc(1, 2)
+		nodes, hasCycle := TopologicalSort(gr)
+		c.Expect(hasCycle, IsFalse)
+		c.Expect(nodes, ContainsExactly, Values(NodeId(1), NodeId(2)))
+	})
+} 
+
 func TestAlgorithms(t *testing.T) {
 	r := gospec.NewRunner()
 	r.AddSpec(ReduceDirectPathsSpec)
+	r.AddSpec(TopologicalSortSpec)
 	gospec.MainGoTest(r, t)
 }
