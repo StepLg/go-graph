@@ -50,10 +50,15 @@ func topologicalSortHelper(gr DirectedGraphReader, curNode NodeId, nodes []NodeI
 	status[curNode] = false
 	pos = len(nodes)
 	for _, accessor := range gr.GetAccessors(curNode) {
-		if isBlack, ok := status[accessor]; ok && !isBlack {
-			// cycle detected!
-			hasCycles = true
-			return
+		if isBlack, ok := status[accessor]; ok {
+			if !isBlack {
+				// cycle detected!
+				hasCycles = true
+				return
+			} else {
+				// we have already visited this node
+				continue
+			}
 		}
 		pos, hasCycles = topologicalSortHelper(gr, accessor, nodes[0:pos], status)
 		if hasCycles {

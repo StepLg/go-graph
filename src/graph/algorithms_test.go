@@ -60,6 +60,16 @@ func TopologicalSortSpec(c gospec.Context) {
 		c.Expect(hasCycle, IsFalse)
 		c.Expect(nodes, ContainsExactly, Values(NodeId(1), NodeId(2)))
 	})
+	
+	c.Specify("Pseudo loops", func() {
+		gr.AddArc(1, 2)
+		gr.AddArc(2, 3)
+		gr.AddArc(1, 4)
+		gr.AddArc(4, 3)
+		
+		_, hasCycle := TopologicalSort(gr)
+		c.Expect(hasCycle, IsFalse)
+	})
 } 
 
 func TestAlgorithms(t *testing.T) {
