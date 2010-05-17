@@ -22,6 +22,10 @@ func ReduceDirectPaths(og DirectedGraphReader, rg DirectedGraphArcsWriter, stopF
 	}
 }
 
+// Topological sort of directed graph
+//
+// Return nodes in topological order. If graph has cycles, then hasCycles==true 
+// and nodes==nil in function result.
 func TopologicalSort(gr DirectedGraphReader) (nodes []NodeId, hasCycles bool) {
 	hasCycles = false
 	nodes = make([]NodeId, gr.NodesCnt())
@@ -68,5 +72,35 @@ func topologicalSortHelper(gr DirectedGraphReader, curNode NodeId, nodes []NodeI
 	status[curNode] = true
 	pos--
 	nodes[pos] = curNode
+	return
+}
+
+// Topological sort all accessors of source nodes
+//
+// nodes slice is copy of sources slice with all accessors of each source. 
+// First element of nodes slice is first element of sources slice and then
+// there are all accessors of this element in topological order. Then there
+// is second node from sources slice and all it's accessors in 
+// topological order, etc.
+//
+// Warning! All accessors subgraphs of each source node MUST NOT intersect.
+// Nodes doesn't duplicate, so if some of sources have shared subgraph, then
+// nodes from this subgraph will appear only once after the first source node
+func TopologicalSortFromSources(gr DirectedGraphReader, sources []NodeId) (nodes []NodeId, hasCycles bool) {
+	hasCycles = false
+	nodes = make([]NodeId, gr.NodesCnt())
+	pos := len(nodes)
+	// map of node status. If node doesn't present in map - white color,
+	// node in map with false value - grey color, and with true value - black color
+	status := make(map[NodeId]bool)
+	for _, source := range sources {
+		pos, hasCycles = topologicalSortHelper(gr, source, nodes[0:pos], status)
+		if hasCycles {
+			nodes = nil
+			return
+		}
+	}
+	
+	nodes = nodes[pos:]
 	return
 }
