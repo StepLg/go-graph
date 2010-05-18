@@ -40,6 +40,11 @@ func TopologicalSort(gr DirectedGraphReader) (nodes []NodeId, hasCycles bool) {
 			return
 		}
 	}
+	if pos!=0 {
+		// cycle without path from any source to this cycle
+		nodes = nil
+		hasCycles = true
+	}
 	return
 }
 
