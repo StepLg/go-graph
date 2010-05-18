@@ -70,11 +70,34 @@ func TopologicalSortSpec(c gospec.Context) {
 		_, hasCycle := TopologicalSort(gr)
 		c.Expect(hasCycle, IsFalse)
 	})
-} 
+}
+
+func SplitMixedGraphSpec(c gospec.Context) {
+	c.Specify("Single node graph", func() {
+		subgr1 := NewMixedMatrix(3)
+		subgr1.AddArc(1, 2)
+		subgr1.AddEdge(1, 3)
+		subgr2 := NewMixedMatrix(3)
+		subgr2.AddArc(4, 5)
+		subgr2.AddArc(5, 6)
+		subgr2.AddArc(4, 6)
+		
+		gr := NewMixedMatrix(6)
+		CopyMixedGraph(subgr1, gr)
+		CopyMixedGraph(subgr2, gr)
+		
+		subgraphs := SplitMixedGraph(gr)
+		c.Expect(len(subgraphs), Equals, 2)
+		// @todo: Add ContainsGraph comparator to check if slice contains a graph
+		c.Expect(MixedGraphsEquals(subgr1, subgraphs[1]), IsTrue)
+		c.Expect(MixedGraphsEquals(subgr2, subgraphs[0]), IsTrue)
+	})
+}
 
 func TestAlgorithms(t *testing.T) {
 	r := gospec.NewRunner()
 	r.AddSpec(ReduceDirectPathsSpec)
 	r.AddSpec(TopologicalSortSpec)
+	r.AddSpec(SplitMixedGraphSpec)
 	gospec.MainGoTest(r, t)
 }

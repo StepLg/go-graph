@@ -104,3 +104,88 @@ func TopologicalSortFromSources(gr DirectedGraphReader, sources []NodeId) (nodes
 	nodes = nodes[pos:]
 	return
 }
+
+func splitMixedGraph_helper(node NodeId, color int, gr MixedGraphReader, nodesColor map[NodeId]int) {
+	nodesColor[node] = color
+	// todo: neighbours and accesors as iterators
+	for _, next := range gr.GetNeighbours(node) {
+		if nextColor, ok := nodesColor[next]; ok {
+			if nextColor != color {
+				// change all 'nextColor' nodes to 'color' nodes
+				for k, v := range nodesColor {
+					if v==nextColor {
+						nodesColor[k] = color
+					}
+				}
+			}
+		} else {
+			splitMixedGraph_helper(next, color, gr, nodesColor)
+		}
+	}
+	for _, next := range gr.GetAccessors(node) {
+		if nextColor, ok := nodesColor[next]; ok {
+			if nextColor != color {
+				// change all 'nextColor' nodes to 'color' nodes
+				for k, v := range nodesColor {
+					if v==nextColor {
+						nodesColor[k] = color
+					}
+				}
+			}
+		} else {
+			splitMixedGraph_helper(next, color, gr, nodesColor)
+		}
+	}
+	return
+}
+
+// Split mixed graph to independed subraphs
+//
+// @todo: Add creator function to control type of new created graphs
+func SplitMixedGraph(gr MixedGraphReader) []MixedGraph {
+	nodesColor := make(map[NodeId]int)
+	curColor := 0
+	
+	for _, curNode := range gr.GetSources() {
+		if _, ok := nodesColor[curNode]; ok {
+			// node already visited
+			continue
+		}
+		splitMixedGraph_helper(curNode, curColor, gr, nodesColor)
+		curColor++
+	}
+	
+	// get total nodes count of each subgraph
+	colors := make(map[int]int)
+	for _, color := range nodesColor {
+		if _, ok := colors[color]; !ok {
+			colors[color] = 0
+		}
+		colors[color]++
+	}
+	
+	result := make(map[int]MixedGraph, len(colors))
+	for color, nodesCnt := range colors {
+		result[color] = NewMixedMatrix(nodesCnt)
+	}
+	
+	for node := range gr.NodesIter() {
+		result[nodesColor[node]].AddNode(node)
+	}
+	
+	for arc := range gr.ArcsIter() {
+		result[nodesColor[arc.Tail]].AddArc(arc.Tail, arc.Head)
+	}
+	
+	for edge := range gr.EdgesIter() {
+		result[nodesColor[edge.Tail]].AddEdge(edge.Tail, edge.Head)
+	}
+	
+	resultSlice := make([]MixedGraph, len(result))
+	i := 0
+	for _, subgraph := range result {
+		resultSlice[i] = subgraph
+		i++
+	}
+	return resultSlice
+}
