@@ -418,7 +418,7 @@ func (gr *MixedMatrix) GetAccessors(node NodeId) Nodes {
 func (gr *MixedMatrix) GetPredecessors(node NodeId) Nodes {
 	defer func() {
 		if e := recover(); e!=nil {
-			err := erx.NewSequent("Get node accessors in mixed graph.", e)
+			err := erx.NewSequent("Get node predecessors in mixed graph.", e)
 			err.AddV("node", node)
 			panic(err)
 		}
