@@ -95,6 +95,26 @@ func CheckMixedPathSpec(c gospec.Context, checkPathFunction CheckMixedPath) {
 	})
 }
 
+func GetAllMixedPathsSpec(c gospec.Context) {
+	gr := NewMixedMatrix(6)
+	gr.AddArc(1, 2)
+	gr.AddArc(2, 3)
+	gr.AddArc(3, 4)
+	gr.AddArc(2, 4)
+	gr.AddArc(4, 5)
+	gr.AddArc(1, 6)
+	gr.AddArc(2, 6)
+	gr.AddEdge(6, 4)
+	
+	// We doesn't specify order to output found paths, so 
+	// i don't know how to easy test result.
+	/*	
+	for path := range GetAllMixedPaths(gr, 1, 6) {
+		// fmt.Println(path)
+	}
+	*/
+}
+
 func TestSearch(t *testing.T) {
 	r := gospec.NewRunner()
 
@@ -116,6 +136,8 @@ func TestSearch(t *testing.T) {
 		}
 		r.AddNamedSpec("CheckMixedPath(Dijkstra)", cr(CheckMixedPathDijkstra))
 	}
+	
+	r.AddSpec(GetAllMixedPathsSpec)
 
 
 	gospec.MainGoTest(r, t)

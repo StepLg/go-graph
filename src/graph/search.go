@@ -118,3 +118,46 @@ func CheckMixedPathDijkstra(gr MixedGraphConnectionsReader, from, to NodeId, sto
 	
 	return false
 }
+
+// Get all mixed paths from one node to another
+//
+// This algorithms doesn't take any loops into paths. So maximum path length is 
+// nodes count in graph.
+func GetAllMixedPaths(gr MixedGraphReader, from, to NodeId) <-chan []NodeId {
+	curPath := make([]NodeId, gr.NodesCnt())
+	nodesStatus := make(map[NodeId]bool)
+	ch := make(chan []NodeId)
+	go getAllMixedPaths_helper(gr, from, to, curPath, 0, nodesStatus, ch, true)
+	return ch
+}
+
+func getAllMixedPaths_helper(gr MixedGraphReader, from, to NodeId, curPath []NodeId, pathPos int, nodesStatus map[NodeId]bool, ch chan []NodeId, closeChannel bool) {
+	if _, ok := nodesStatus[from]; ok {
+		return
+	}
+	curPath[pathPos] = from
+
+	if from==to { 
+		if pathPos>0 {
+			pathCopy := make([]NodeId, pathPos+1)
+			copy(pathCopy, curPath[0:pathPos+1])
+			ch <- pathCopy
+		}
+		return
+	}
+	nodesStatus[from] = true
+	
+	for _, neighbour := range gr.GetNeighbours(from) {
+		getAllMixedPaths_helper(gr, neighbour, to, curPath, pathPos+1, nodesStatus, ch, false)
+	}
+	for _, accessor := range gr.GetAccessors(from) {
+		getAllMixedPaths_helper(gr, accessor, to, curPath, pathPos+1, nodesStatus, ch, false)
+	}
+	
+	nodesStatus[from] = false, false
+	
+	if closeChannel {
+		close(ch)
+	}
+	return
+}
