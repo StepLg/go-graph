@@ -13,6 +13,7 @@ GOFILES=               \
 	UndirectedMatrix.go\
 	UndirectedMap.go   \
 	MixedMatrix.go     \
+	MixedMap.go        \
 	ConnectionsIterators.go
  
 include $(GOROOT)/src/Make.pkg

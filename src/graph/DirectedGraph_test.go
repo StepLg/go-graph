@@ -181,5 +181,8 @@ func TestDirectedMapSpec(t *testing.T) {
 	r.AddNamedSpec("DirectedGraph(MixedMatrix)", cr(func() DirectedGraph {
 		return DirectedGraph(NewMixedMatrix(10))
 	}))
+	r.AddNamedSpec("DirectedGraph(MixedMap)", cr(func() DirectedGraph {
+		return DirectedGraph(NewMixedMap())
+	}))
 	gospec.MainGoTest(r, t)
 }
