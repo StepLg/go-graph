@@ -321,3 +321,12 @@ func (helper *edgesToTypedConnIterable_helper) TypedConnectionsIter() <-chan Typ
 func EdgesToTypedConnIterable(gr UndirectedGraphEdgesReader) TypedConnectionsIterable {
 	return &edgesToTypedConnIterable_helper{gr}
 }
+
+// Helper struct to create nodes iterators with lambda functions
+type nodesIterableLambdaHelper struct {
+	iterFunc func() <-chan NodeId
+}
+
+func (helper *nodesIterableLambdaHelper) NodesIter() <-chan NodeId {
+	return helper.iterFunc()
+}

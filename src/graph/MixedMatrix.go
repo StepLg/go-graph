@@ -187,37 +187,37 @@ func (gr *MixedMatrix) CheckEdge(node1, node2 NodeId) bool {
 }
 
 // Getting all nodes, connected to given one
-func (gr *MixedMatrix) GetNeighbours(node NodeId) Nodes {
-	defer func() {
-		if e := recover(); e!=nil {
-			err := erx.NewSequent("Get node neighbours in mixed graph.", e)
-			err.AddV("node", node)
-			panic(err)
-		}
-	}()
-	
-	if _, ok := gr.nodeIds[node]; !ok {
-		panic(erx.NewError("Unknown node."))
-	}
-	
-	result := make([]NodeId, gr.size)
-	ind := 0
-	{
-		var connId int
-		for aNode, _ := range gr.nodeIds {
-			if aNode==node {
-				continue
-			}
-			connId= gr.getConnectionId(node, aNode, false)
+func (gr *MixedMatrix) GetNeighbours(node NodeId) NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		
+		go func() {
+			defer func() {
+				if e := recover(); e!=nil {
+					err := erx.NewSequent("Get node neighbours in mixed graph.", e)
+					err.AddV("node", node)
+					panic(err)
+				}
+			}()
 			
-			if gr.nodes[connId]==CT_UNDIRECTED {
-				result[ind] = aNode
-				ind++
+			for neighbour, _ := range gr.nodeIds {
+				if node==neighbour {
+					// skipping loops
+					continue
+				}
+	
+				connId := gr.getConnectionId(node, neighbour, false)			
+				if gr.nodes[connId]==CT_UNDIRECTED {
+					ch <- neighbour
+				}
 			}
-		}
+			close(ch)
+		}()
+			
+		return ch
 	}
 	
-	return result[0:ind]
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -293,164 +293,163 @@ func (gr *MixedMatrix) ArcsCnt() int {
 }
 
 // Getting all graph sources.
-func (gr *MixedMatrix) GetSources() Nodes {
-	defer func() {
-		if e := recover(); e!=nil {
-			panic(erx.NewSequent("Get sources in mixed graph.", e))
-		}
-	}()
+func (gr *MixedMatrix) GetSources() NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		go func() {
+			for tailNode, _ := range gr.nodeIds {
+				hasPredecessors := false
+				for headNode, _ := range gr.nodeIds {
+					if tailNode==headNode {
+						continue
+					}
+					
+					checkingType := CT_NONE
+					if tailNode < headNode {
+						checkingType = CT_DIRECTED_REVERSED
+					} else {
+						checkingType = CT_DIRECTED
+					}
+				
+					connId := gr.getConnectionId(tailNode, headNode, false)
 	
-	result := make([]NodeId, gr.size)
-	ind := 0
-	{
-		for tailNode, _ := range gr.nodeIds {
-			hasPredecessors := false
-			for headNode, _ := range gr.nodeIds {
-				if tailNode==headNode {
-					continue
+					if gr.nodes[connId]==checkingType {
+						hasPredecessors = true
+						break
+					}
 				}
-
-				checkingType := CT_NONE
-				if tailNode < headNode {
-					checkingType = CT_DIRECTED_REVERSED
-				} else {
-					checkingType = CT_DIRECTED
-				}
-			
-				connId := gr.getConnectionId(tailNode, headNode, false)
-
-				if gr.nodes[connId]==checkingType {
-					hasPredecessors = true
-					break
+				if !hasPredecessors {
+					ch <- tailNode
 				}
 			}
-			if !hasPredecessors {
-				result[ind] = tailNode
-				ind++
-			}
-		}
+			close(ch)
+		}()
+		return ch
 	}
 	
-	return result[0:ind]
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Getting all graph sinks.
-func (gr *MixedMatrix) GetSinks() Nodes {
-	defer func() {
-		if e := recover(); e!=nil {
-			panic(erx.NewSequent("Get sinks in mixed graph.", e))
-		}
-	}()
+func (gr *MixedMatrix) GetSinks() NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		go func() {
+			for tailNode, _ := range gr.nodeIds {
+				hasPredecessors := false
+				for headNode, _ := range gr.nodeIds {
+					if tailNode==headNode {
+						continue
+					}
+					
+					checkingType := CT_NONE
+					if tailNode < headNode {
+						checkingType = CT_DIRECTED
+					} else {
+						checkingType = CT_DIRECTED_REVERSED
+					}
+				
+					connId := gr.getConnectionId(tailNode, headNode, false)
 	
-	result := make([]NodeId, gr.size)
-	ind := 0
-	{
-		for tailNode, _ := range gr.nodeIds {
-			hasAccessors := false
+					if gr.nodes[connId]==checkingType {
+						hasPredecessors = true
+						break
+					}
+				}
+				if !hasPredecessors {
+					ch <- tailNode
+				}
+			}
+			close(ch)
+		}()
+		return ch
+	}
+	
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
+}
+
+// Getting node accessors
+func (gr *MixedMatrix) GetAccessors(node NodeId) NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		
+		go func() {
+			defer func() {
+				if e := recover(); e!=nil {
+					err := erx.NewSequent("Get node accessors in mixed graph.", e)
+					err.AddV("node", node)
+					panic(err)
+				}
+			}()
+			
 			for headNode, _ := range gr.nodeIds {
-				if tailNode==headNode {
+				if node==headNode {
+					// skipping loops
 					continue
 				}
-
+	
 				checkingType := CT_NONE
-				if tailNode < headNode {
+				if node < headNode {
 					checkingType = CT_DIRECTED
 				} else {
 					checkingType = CT_DIRECTED_REVERSED
 				}
-			
-				connId := gr.getConnectionId(tailNode, headNode, false)
-
+	
+				connId := gr.getConnectionId(node, headNode, false)
+				
 				if gr.nodes[connId]==checkingType {
-					hasAccessors = true
-					break
+					ch <- headNode
 				}
 			}
-			if !hasAccessors {
-				result[ind] = tailNode
-				ind++
-			}
-		}
-	}
-	
-	return result[0:ind]
-}
-
-// Getting node accessors
-func (gr *MixedMatrix) GetAccessors(node NodeId) Nodes {
-	defer func() {
-		if e := recover(); e!=nil {
-			err := erx.NewSequent("Get node accessors in mixed graph.", e)
-			err.AddV("node", node)
-			panic(err)
-		}
-	}()
-	
-	result := make([]NodeId, gr.size)
-	ind := 0
-	{
-		for headNode, _ := range gr.nodeIds {
-			if node==headNode {
-				// skipping loops
-				continue
-			}
-
-			checkingType := CT_NONE
-			if node < headNode {
-				checkingType = CT_DIRECTED
-			} else {
-				checkingType = CT_DIRECTED_REVERSED
-			}
-
-			connId := gr.getConnectionId(node, headNode, false)
+			close(ch)
+		}()
 			
-			if gr.nodes[connId]==checkingType {
-				result[ind] = headNode
-				ind++
-			}
-		}
+		return ch
 	}
 	
-	return result[0:ind]
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Getting node predecessors
-func (gr *MixedMatrix) GetPredecessors(node NodeId) Nodes {
-	defer func() {
-		if e := recover(); e!=nil {
-			err := erx.NewSequent("Get node predecessors in mixed graph.", e)
-			err.AddV("node", node)
-			panic(err)
-		}
-	}()
-	
-	result := make([]NodeId, gr.size)
-	ind := 0
-	{
-		for tailNode, _ := range gr.nodeIds {
-			if node==tailNode {
-				// skipping loops
-				continue
-			}
+func (gr *MixedMatrix) GetPredecessors(node NodeId) NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
 		
-			checkingType := CT_NONE
-			if node < tailNode {
-				checkingType = CT_DIRECTED_REVERSED
-			} else {
-				checkingType = CT_DIRECTED
-			}
-
-
-			connId := gr.getConnectionId(node, tailNode, false)
+		go func() {
+			defer func() {
+				if e := recover(); e!=nil {
+					err := erx.NewSequent("Get node predecessors in mixed graph.", e)
+					err.AddV("node", node)
+					panic(err)
+				}
+			}()
 			
-			if gr.nodes[connId]==checkingType {
-				result[ind] = tailNode
-				ind++
+			for tailNode, _ := range gr.nodeIds {
+				if node==tailNode {
+					// skipping loops
+					continue
+				}
+	
+				checkingType := CT_NONE
+				if node < tailNode {
+					checkingType = CT_DIRECTED_REVERSED
+				} else {
+					checkingType = CT_DIRECTED
+				}
+	
+				connId := gr.getConnectionId(node, tailNode, false)
+				
+				if gr.nodes[connId]==checkingType {
+					ch <- tailNode
+				}
 			}
-		}
+			close(ch)
+		}()
+			
+		return ch
 	}
 	
-	return result[0:ind]
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Checking arrow existance between node1 and node2

@@ -35,47 +35,40 @@ func NewDirectedGraphArcFilter(g DirectedGraphArcsReader, tail, head NodeId) *Di
 }
 
 // Getting node accessors
-func (filter *DirectedGraphArcsFilter) GetAccessors(node NodeId) Nodes {
-	accessors := filter.DirectedGraphArcsReader.GetAccessors(node)
-	newAccessorsLen := len(accessors)
-	for _, filteringConnection := range filter.arcs {
-		if node == filteringConnection.Tail {
-			// need to remove filtering arc
-			k := 0
-			for k=0; k<newAccessorsLen; k++ {
-				if accessors[k]==filteringConnection.Head {
-					break
+func (filter *DirectedGraphArcsFilter) GetAccessors(node NodeId) NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		go func() {
+			AccessorsLoop: 
+			for accessor := range filter.DirectedGraphArcsReader.GetAccessors(node).NodesIter() {
+				if !filter.IsArcFiltering(node, accessor) {
+					ch <- accessor
 				}
 			}
-			if k<newAccessorsLen {
-				copy(accessors[k:newAccessorsLen-1], accessors[k+1:newAccessorsLen])
-				newAccessorsLen--
-			}
-		}
+			close(ch)
+		}()
+		return ch
 	}
-	return accessors[0:newAccessorsLen]
+	
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Getting node predecessors
-func (filter *DirectedGraphArcsFilter) GetPredecessors(node NodeId) Nodes {
-	predecessors := filter.DirectedGraphArcsReader.GetAccessors(node)
-	newPredecessorsLen := len(predecessors)
-	for _, filteringConnection := range filter.arcs {
-		if node == filteringConnection.Head {
-			// need to remove filtering arc
-			k := 0
-			for k=0; k<newPredecessorsLen; k++ {
-				if predecessors[k]==filteringConnection.Tail {
-					break
+func (filter *DirectedGraphArcsFilter) GetPredecessors(node NodeId) NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		go func() {
+			for predecessor := range filter.DirectedGraphArcsReader.GetPredecessors(node).NodesIter() {
+				if !filter.IsArcFiltering(predecessor, node) {
+					ch <- predecessor
 				}
 			}
-			if k<newPredecessorsLen {
-				copy(predecessors[k:newPredecessorsLen-1], predecessors[k+1:newPredecessorsLen])
-				newPredecessorsLen--
-			}
-		}
+			close(ch)
+		}()
+		return ch
 	}
-	return predecessors[0:newPredecessorsLen]
+	
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Checking arrow existance between node1 and node2
@@ -163,18 +156,21 @@ func NewUndirectedGraphEdgeFilter(g UndirectedGraphEdgesReader, tail, head NodeI
 }
 
 // Getting node neighbours
-func (filter *UndirectedGraphEdgesFilter) GetNeighbours(node NodeId) Nodes {
-	neighbours := filter.UndirectedGraphEdgesReader.GetNeighbours(node)
-	newNeighboursLen := len(neighbours)
-	k := 0
-	for k=0; k<newNeighboursLen; k++ {
-		if filter.IsEdgeFiltering(node, neighbours[k]) {
-			copy(neighbours[k:newNeighboursLen-1], neighbours[k+1:newNeighboursLen])
-			k--
-			newNeighboursLen--
-		}
+func (filter *UndirectedGraphEdgesFilter) GetNeighbours(node NodeId) NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		go func() {
+			for neighbour := range filter.UndirectedGraphEdgesReader.GetNeighbours(node).NodesIter() {
+				if !filter.IsEdgeFiltering(node, neighbour) {
+					ch <- neighbour
+				}
+			}
+			close(ch)
+		}()
+		return ch
 	}
-	return neighbours[0:newNeighboursLen]
+	
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Checking edge existance between node1 and node2

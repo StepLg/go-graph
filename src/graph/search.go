@@ -1,6 +1,9 @@
 package graph
 
 import (
+	"fmt"
+	. "exp/iterable"
+
 	"github.com/StepLg/go-erx/src/erx"
 )
 
@@ -35,8 +38,7 @@ func CheckDirectedPathDijkstra(gr DirectedGraphArcsReader, from, to NodeId, stop
 	for !q.Empty() {
 		curNode, curWeight := q.Next()
 		curWeight = -curWeight // because we inverse weight in priority queue
-		accessors := gr.GetAccessors(curNode)
-		for _, nextNode := range accessors {
+		for nextNode := range gr.GetAccessors(curNode).NodesIter() {
 			if nextNode==to {
 				return true
 			}
@@ -81,23 +83,19 @@ func CheckMixedPathDijkstra(gr MixedGraphConnectionsReader, from, to NodeId, sto
 		curNode, curWeight := q.Next()
 		curWeight = -curWeight // because we inverse weight in priority queue
 		
-		// todo: implement GetAccessors and GetNeighbours as channels instead of slices
-		accessors := gr.GetAccessors(curNode)
-		neighbours := gr.GetNeighbours(curNode)
-		
-		if len(accessors)+len(neighbours)==0 {
-			continue
-		}
-		
-		nextNodes := make([]NodeId, len(accessors) + len(neighbours))
-		if len(accessors)!=0 {
-			copy(nextNodes[0:len(accessors)], accessors)
-		}
-		if len(neighbours)!=0 {
-			copy(nextNodes[len(accessors):], neighbours)
-		}
-		
-		for _, nextNode := range nextNodes {
+		iter := Chain(&[...]Iterable{
+			NodesToGenericIter(gr.GetAccessors(curNode)), 
+			NodesToGenericIter(gr.GetNeighbours(curNode)),
+		})
+
+		for nextNode := range iter.Iter() {
+			nextNode, ok := nextNode.(NodeId)
+			if !ok {
+				err := erx.NewError("Generics type assertation.")
+				err.AddV("expected type", "graph.NodeId")
+				err.AddV("got type", fmt.Sprintf("%T", nextNode))
+				panic(err)
+			}
 			if nextNode==to {
 				return true
 			}
@@ -147,11 +145,20 @@ func getAllMixedPaths_helper(gr MixedGraphReader, from, to NodeId, curPath []Nod
 	}
 	nodesStatus[from] = true
 	
-	for _, neighbour := range gr.GetNeighbours(from) {
-		getAllMixedPaths_helper(gr, neighbour, to, curPath, pathPos+1, nodesStatus, ch, false)
-	}
-	for _, accessor := range gr.GetAccessors(from) {
-		getAllMixedPaths_helper(gr, accessor, to, curPath, pathPos+1, nodesStatus, ch, false)
+	iter := Chain(&[...]Iterable{
+		NodesToGenericIter(gr.GetAccessors(from)), 
+		NodesToGenericIter(gr.GetNeighbours(from)),
+	})
+	
+	for nextNode := range iter.Iter() {
+		nextNode, ok := nextNode.(NodeId)
+		if !ok {
+			err := erx.NewError("Generics type assertation.")
+			err.AddV("expected type", "graph.NodeId")
+			err.AddV("got type", fmt.Sprintf("%T", nextNode))
+			panic(err)
+		}
+		getAllMixedPaths_helper(gr, nextNode, to, curPath, pathPos+1, nodesStatus, ch, false)
 	}
 	
 	nodesStatus[from] = false, false

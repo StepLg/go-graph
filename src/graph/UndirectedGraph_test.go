@@ -32,7 +32,7 @@ func UndirectedGraphSpec(c gospec.Context, graphCreator func() UndirectedGraph) 
 		})
 		
 		c.Specify("no neighbours", func() {
-			c.Expect(len(gr.GetNeighbours(nodeId)), Equals, 0)
+			c.Expect(len(CollectNodes(gr.GetNeighbours(nodeId))), Equals, 0)
 		})
 	})
 
@@ -50,8 +50,8 @@ func UndirectedGraphSpec(c gospec.Context, graphCreator func() UndirectedGraph) 
 		})
 		
 		c.Specify("neighbours", func() {
-			c.Expect(gr.GetNeighbours(n1), ContainsExactly, Values(n2))
-			c.Expect(gr.GetNeighbours(n2), ContainsExactly, Values(n1))
+			c.Expect(CollectNodes(gr.GetNeighbours(n1)), ContainsExactly, Values(n2))
+			c.Expect(CollectNodes(gr.GetNeighbours(n2)), ContainsExactly, Values(n1))
 		})
 	})
 }

@@ -2,7 +2,6 @@ package graph
 
 import (
 	"github.com/StepLg/go-erx/src/erx"
-	. "container/vector"
 )
 
 type DirectedMap struct {
@@ -175,89 +174,99 @@ func (g *DirectedMap) ArcsCnt() int {
 }
 
 // Getting all graph sources.
-func (g *DirectedMap) GetSources() (result Nodes) {
-	resultVector := new(Vector)
-	for nodeId, predecessors := range g.reversedArcs {
-		if len(predecessors)==0 {
-			resultVector.Push(nodeId)
-		}
+func (g *DirectedMap) GetSources() NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		go func() {
+			for nodeId, predecessors := range g.reversedArcs {
+				if len(predecessors)==0 {
+					ch <- nodeId
+				}
+			}
+			close(ch)
+		}()
+		return ch
 	}
-
-	result = make(Nodes, resultVector.Len())
-	for i:=0; i<resultVector.Len(); i++ {
-		
-		if nId, ok := resultVector.At(i).(NodeId); ok {
-			// must allways be true! lack of generics :(
-			result[i] = nId
-		}
-	}	
-	return
+	
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Getting all graph sinks.
-func (g *DirectedMap) GetSinks() (result Nodes) {
-	resultVector := new(Vector)
-	for nodeId, accessors := range g.directArcs {
-		if len(accessors)==0 {
-			resultVector.Push(nodeId)
-		}
+func (g *DirectedMap) GetSinks() NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		go func() {
+			for nodeId, accessors := range g.directArcs {
+				if len(accessors)==0 {
+					ch <- nodeId
+				}
+			}
+			close(ch)
+		}()
+		return ch
 	}
-
-	result = make(Nodes, resultVector.Len())
-	for i:=0; i<resultVector.Len(); i++ {
-		
-		if nId, ok := resultVector.At(i).(NodeId); ok {
-			// must allways be true! lack of generics :(
-			result[i] = nId
-		}
-	}	
-	return
+	
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Getting node accessors
-func (g *DirectedMap) GetAccessors(node NodeId) (accessors Nodes) {
-	makeError := func(err interface{}) (res erx.Error) {
-		res = erx.NewSequentLevel("Getting node accessors.", err, 1)
-		res.AddV("node id", node)
-		return
-	}
-
-	accessorsMap, ok := g.directArcs[node]
-	if !ok {
-		panic(makeError(erx.NewError("Node doesn't exists.")))
+func (g *DirectedMap) GetAccessors(node NodeId) NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		
+		go func() {
+			defer func() {
+				if e := recover(); e!=nil {
+					err := erx.NewSequent("Get node accessors in mixed graph.", e)
+					err.AddV("node", node)
+					panic(err)
+				}
+			}()
+			accessorsMap, ok := g.directArcs[node]
+			if !ok {
+				panic(erx.NewError("Node doesn't exists."))
+			}
+			
+			for nodeId, _ := range accessorsMap {
+				ch <- nodeId
+			}
+			close(ch)
+		}()
+			
+		return ch
 	}
 	
-	accessors = make(Nodes, len(accessorsMap))
-	id := 0
-	for nodeId, _ := range accessorsMap {
-		accessors[id] = nodeId
-		id++
-	}
-	
-	return
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Getting node predecessors
-func (g *DirectedMap) GetPredecessors(node NodeId) (predecessors Nodes) {
-	makeError := func(err interface{}) (res erx.Error) {
-		res = erx.NewSequentLevel("Getting node predecessors.", err, 1)
-		res.AddV("node id", node)
-		return
-	}
-
-	predecessorsMap, ok := g.reversedArcs[node]
-	if !ok {
-		panic(makeError(erx.NewError("Node doesn't exists.")))
-	}
-
-	predecessors = make(Nodes, len(predecessorsMap))
-	id := 0
-	for nodeId, _ := range predecessorsMap {
-		predecessors[id] = nodeId
-		id++
+func (g *DirectedMap) GetPredecessors(node NodeId) NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		
+		go func() {
+			defer func() {
+				if e := recover(); e!=nil {
+					err := erx.NewSequent("Get node accessors in mixed graph.", e)
+					err.AddV("node", node)
+					panic(err)
+				}
+			}()
+			accessorsMap, ok := g.reversedArcs[node]
+			if !ok {
+				panic(erx.NewError("Node doesn't exists."))
+			}
+			
+			for nodeId, _ := range accessorsMap {
+				ch <- nodeId
+			}
+			close(ch)
+		}()
+			
+		return ch
 	}
 	
-	return
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 func (g *DirectedMap) CheckArc(from, to NodeId) (isExist bool) {

@@ -158,25 +158,23 @@ func (g *UndirectedMap) EdgesCnt() int {
 }
 
 // Getting node predecessors
-func (g *UndirectedMap) GetNeighbours(node NodeId) (connected Nodes) {
-	makeError := func(err interface{}) (res erx.Error) {
-		res = erx.NewSequentLevel("Get node neighbours.", err, 1)
-		res.AddV("node id", node)
-		return
-	}
-
-	if connectedMap, ok := g.edges[node]; ok {
-		connected = make(Nodes, len(connectedMap))
-		id := 0
-		for nodeId, _ := range connectedMap {
-			connected[id] = nodeId
-			id++
-		}
-	} else {
-		panic(makeError(erx.NewError("Node doesn't exists.")))
+func (g *UndirectedMap) GetNeighbours(node NodeId) NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		go func() {
+			if connectedMap, ok := g.edges[node]; ok {
+				for nodeId, _ := range connectedMap {
+					ch <- nodeId
+				}
+			} else {
+				panic(erx.NewError("Node doesn't exists."))
+			}
+			close(ch)
+		}()
+		return ch
 	}
 	
-	return
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 func (g *UndirectedMap) CheckEdge(from, to NodeId) (isExist bool) {

@@ -42,21 +42,21 @@ func DirectedGraphSpec(c gospec.Context, graphCreator func() DirectedGraph) {
 		})
 		
 		c.Specify("no accessors", func() {
-			accessors := gr.GetAccessors(nodeId)
+			accessors := CollectNodes(gr.GetAccessors(nodeId))
 			c.Expect(len(accessors), Equals, 0)
 		})
 		
 		c.Specify("no predecessors", func() {
-			c.Expect(len(gr.GetPredecessors(nodeId)), Equals, 0)
+			c.Expect(len(CollectNodes(gr.GetPredecessors(nodeId))), Equals, 0)
 		})
 		
 		c.Specify("node becomes a source", func() {
-			sources := gr.GetSources()
+			sources := CollectNodes(gr.GetSources())
 			c.Expect(sources, ContainsExactly, Values(nodeId))
 		})
 
 		c.Specify("node becomes a sink", func() {
-			sinks := gr.GetSinks()
+			sinks := CollectNodes(gr.GetSinks())
 			c.Expect(sinks, ContainsExactly, Values(nodeId))
 		})
 
@@ -77,27 +77,27 @@ func DirectedGraphSpec(c gospec.Context, graphCreator func() DirectedGraph) {
 		})
 		
 		c.Specify("correct accessors in arrow start", func() {
-			c.Expect(gr.GetAccessors(nodeId), ContainsExactly, Values(anotherNodeId))
+			c.Expect(CollectNodes(gr.GetAccessors(nodeId)), ContainsExactly, Values(anotherNodeId))
 		})
 
 		c.Specify("correct predecessors in arrow start", func() {
-			c.Expect(len(gr.GetPredecessors(nodeId)), Equals, 0)
+			c.Expect(len(CollectNodes(gr.GetPredecessors(nodeId))), Equals, 0)
 		})
 
 		c.Specify("correct accessors in arrow end", func() {
-			c.Expect(len(gr.GetAccessors(anotherNodeId)), Equals, 0)
+			c.Expect(len(CollectNodes(gr.GetAccessors(anotherNodeId))), Equals, 0)
 		})
 
 		c.Specify("correct predecessors in arrow end", func() {
-			c.Expect(gr.GetPredecessors(anotherNodeId), ContainsExactly, Values(nodeId))
+			c.Expect(CollectNodes(gr.GetPredecessors(anotherNodeId)), ContainsExactly, Values(nodeId))
 		})
 		
 		c.Specify("arrow start becomes a source", func() {
-			c.Expect(gr.GetSources(), ContainsExactly, Values(nodeId))
+			c.Expect(CollectNodes(gr.GetSources()), ContainsExactly, Values(nodeId))
 		})
 
 		c.Specify("arrow end becomes a sink", func() {
-			c.Expect(gr.GetSinks(), ContainsExactly, Values(anotherNodeId))
+			c.Expect(CollectNodes(gr.GetSinks()), ContainsExactly, Values(anotherNodeId))
 		})
 	})
 	
@@ -119,45 +119,45 @@ func DirectedGraphSpec(c gospec.Context, graphCreator func() DirectedGraph) {
 		})
 		
 		c.Specify("checking sources", func() {
-			sources := gr.GetSources()
+			sources := CollectNodes(gr.GetSources())
 			c.Expect(sources, ContainsExactly, Values(NodeId(4), NodeId(6)))
 			
 			c.Specify("every source hasn't any predecessors", func() {
 				for _, nodeId := range sources {
-					c.Expect(len(gr.GetPredecessors(nodeId)), Equals, 0)
+					c.Expect(len(CollectNodes(gr.GetPredecessors(nodeId))), Equals, 0)
 				}
 			})
 		})
 		
 		c.Specify("checking sinks", func() {
-			sinks := gr.GetSinks()
+			sinks := CollectNodes(gr.GetSinks())
 			c.Expect(sinks, ContainsExactly, Values(NodeId(5), NodeId(7)))
 
 			c.Specify("every sink hasn't any accessors", func() {
 				for _, nodeId := range sinks {
-					c.Expect(len(gr.GetAccessors(nodeId)), Equals, 0)
+					c.Expect(len(CollectNodes(gr.GetAccessors(nodeId))), Equals, 0)
 				}
 			})
 		})
 		
 		c.Specify("checking accessors in intermediate node", func() {
-			accessors := gr.GetAccessors(1)
+			accessors := CollectNodes(gr.GetAccessors(1))
 			c.Expect(accessors, ContainsExactly, Values(NodeId(2), NodeId(5), NodeId(7)))
 			
 			c.Specify("every accessor has this node in predecessors", func() {
 				for _, nodeId := range accessors {
-					c.Expect(gr.GetPredecessors(nodeId), Contains, NodeId(1))
+					c.Expect(CollectNodes(gr.GetPredecessors(nodeId)), Contains, NodeId(1))
 				}
 			})
 		})
 
 		c.Specify("checking predecessors in intermediate node", func() {
-			predecessors := gr.GetPredecessors(5)
+			predecessors := CollectNodes(gr.GetPredecessors(5))
 			c.Expect(predecessors, ContainsExactly, Values(NodeId(1), NodeId(4)))
 			
 			c.Specify("every predecessor has this node in accessors", func() {
 				for _, nodeId := range predecessors {
-					c.Expect(gr.GetAccessors(nodeId), Contains, NodeId(5))
+					c.Expect(CollectNodes(gr.GetAccessors(nodeId)), Contains, NodeId(5))
 				}
 			})
 		})

@@ -33,7 +33,7 @@ func TopologicalSort(gr DirectedGraphReader) (nodes []NodeId, hasCycles bool) {
 	// map of node status. If node doesn't present in map - white color,
 	// node in map with false value - grey color, and with true value - black color
 	status := make(map[NodeId]bool)
-	for _, source := range gr.GetSources() {
+	for source := range gr.GetSources().NodesIter() {
 		pos, hasCycles = topologicalSortHelper(gr, source, nodes[0:pos], status)
 		if hasCycles {
 			nodes = nil
@@ -58,7 +58,7 @@ func topologicalSortHelper(gr DirectedGraphReader, curNode NodeId, nodes []NodeI
 	hasCycles = false
 	status[curNode] = false
 	pos = len(nodes)
-	for _, accessor := range gr.GetAccessors(curNode) {
+	for accessor := range gr.GetAccessors(curNode).NodesIter() {
 		if isBlack, ok := status[accessor]; ok {
 			if !isBlack {
 				// cycle detected!
@@ -113,7 +113,7 @@ func TopologicalSortFromSources(gr DirectedGraphReader, sources []NodeId) (nodes
 func splitMixedGraph_helper(node NodeId, color int, gr MixedGraphReader, nodesColor map[NodeId]int) {
 	nodesColor[node] = color
 	// todo: neighbours and accesors as iterators
-	for _, next := range gr.GetNeighbours(node) {
+	for next := range gr.GetNeighbours(node).NodesIter() {
 		if nextColor, ok := nodesColor[next]; ok {
 			if nextColor != color {
 				// change all 'nextColor' nodes to 'color' nodes
@@ -127,7 +127,7 @@ func splitMixedGraph_helper(node NodeId, color int, gr MixedGraphReader, nodesCo
 			splitMixedGraph_helper(next, color, gr, nodesColor)
 		}
 	}
-	for _, next := range gr.GetAccessors(node) {
+	for next := range gr.GetAccessors(node).NodesIter() {
 		if nextColor, ok := nodesColor[next]; ok {
 			if nextColor != color {
 				// change all 'nextColor' nodes to 'color' nodes
@@ -151,7 +151,7 @@ func SplitMixedGraph(gr MixedGraphReader) []MixedGraph {
 	nodesColor := make(map[NodeId]int)
 	curColor := 0
 	
-	for _, curNode := range gr.GetSources() {
+	for curNode := range gr.GetSources().NodesIter() {
 		if _, ok := nodesColor[curNode]; ok {
 			// node already visited
 			continue

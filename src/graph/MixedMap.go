@@ -176,118 +176,127 @@ func (g *MixedMap) ArcsCnt() int {
 }
 
 // Getting all graph sources.
-func (g *MixedMap) GetSources() (result Nodes) {
-	result = make(Nodes, 10)
-	i := 0
-	for nodeId, connections := range g.connections {
-		isSource := true
-		for _, connType := range connections {
-			if connType==CT_DIRECTED_REVERSED {
-				isSource = false
-				break
+func (g *MixedMap) GetSources() NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		
+		go func() {
+			for nodeId, connections := range g.connections {
+				isSource := true
+				for _, connType := range connections {
+					if connType==CT_DIRECTED_REVERSED {
+						isSource = false
+						break
+					}
+				}
+				if isSource {
+					ch <- nodeId
+				}
 			}
-		}
-		if isSource {
-			// add node to result
-			if i==len(result) {
-				// 2 - is magic number
-				tmp := make(Nodes, i*2)
-				copy(tmp, result)
-				result = tmp
-			}
-			result[i] = nodeId
-			i++
-		}
-	}
 
-	result = result[0:i]
-	return
+			close(ch)
+		}()
+		
+		return ch
+	}
+	
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Getting all graph sinks.
-func (g *MixedMap) GetSinks() (result Nodes) {
-	result = make(Nodes, 10)
-	i := 0
-	for nodeId, connections := range g.connections {
-		isSink := true
-		for _, connType := range connections {
-			if connType==CT_DIRECTED {
-				isSink = false
-				break
+func (g *MixedMap) GetSinks() NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		
+		go func() {
+			for nodeId, connections := range g.connections {
+				isSink := true
+				for _, connType := range connections {
+					if connType==CT_DIRECTED {
+						isSink = false
+						break
+					}
+				}
+				if isSink {
+					ch <- nodeId
+				}
 			}
-		}
-		if isSink {
-			// add node to result
-			if i==len(result) {
-				// 2 - is magic number
-				tmp := make(Nodes, i*2)
-				copy(tmp, result)
-				result = tmp
-			}
-			result[i] = nodeId
-			i++
-		}
-	}
 
-	result = result[0:i]
-	return
+			close(ch)
+		}()
+		
+		return ch
+	}
+	
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Getting node accessors
-func (g *MixedMap) GetAccessors(node NodeId) (accessors Nodes) {
-	defer func() {
-		if e := recover(); e!=nil {
-			err := erx.NewSequent("Getting node accessors.", e)
-			err.AddV("node id", node)
-			panic(err)
-		}
-	}()
-
-	accessorsMap, ok := g.connections[node]
-	if !ok {
-		panic(erx.NewError("Node doesn't exists."))
+func (g *MixedMap) GetAccessors(node NodeId) NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		
+		go func() {
+			defer func() {
+				if e := recover(); e!=nil {
+					err := erx.NewSequent("Getting node accessors.", e)
+					err.AddV("node id", node)
+					panic(err)
+				}
+			}()
+		
+			accessorsMap, ok := g.connections[node]
+			if !ok {
+				panic(erx.NewError("Node doesn't exists."))
+			}
+			
+			for nodeId, connType := range accessorsMap {
+				if connType==CT_DIRECTED {
+					ch <- nodeId
+				}
+			}
+			
+			close(ch)
+		}()
+		
+		return ch
 	}
 	
-	accessors = make(Nodes, len(accessorsMap))
-	id := 0
-	for nodeId, connType := range accessorsMap {
-		if connType==CT_DIRECTED {
-			accessors[id] = nodeId
-			id++
-		}
-	}
-	
-	accessors = accessors[0:id]
-	return 
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Getting node predecessors
-func (g *MixedMap) GetPredecessors(node NodeId) (predecessors Nodes) {
-	defer func() {
-		if e := recover(); e!=nil {
-			err := erx.NewSequent("Getting node predecessors.", e)
-			err.AddV("node id", node)
-			panic(err)
-		}
-	}()
-
-	accessorsMap, ok := g.connections[node]
-	if !ok {
-		panic(erx.NewError("Node doesn't exists."))
+func (g *MixedMap) GetPredecessors(node NodeId) NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		
+		go func() {
+			defer func() {
+				if e := recover(); e!=nil {
+					err := erx.NewSequent("Getting node predecessors.", e)
+					err.AddV("node id", node)
+					panic(err)
+				}
+			}()
+		
+			accessorsMap, ok := g.connections[node]
+			if !ok {
+				panic(erx.NewError("Node doesn't exists."))
+			}
+			
+			for nodeId, connType := range accessorsMap {
+				if connType==CT_DIRECTED_REVERSED {
+					ch <- nodeId
+				}
+			}
+	
+			close(ch)
+		}()
+		
+		return ch
 	}
 	
-	predecessors = make(Nodes, len(accessorsMap))
-	id := 0
-	for nodeId, connType := range accessorsMap {
-		if connType==CT_DIRECTED_REVERSED {
-			predecessors[id] = nodeId
-			id++
-		}
-	}
-	
-	predecessors = predecessors[0:id]
-	return 
-
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator}) 
 }
 
 func (g *MixedMap) CheckArc(from, to NodeId) (isExist bool) {
@@ -396,30 +405,36 @@ func (g *MixedMap) EdgesCnt() int {
 }
 
 // Getting node predecessors
-func (g *MixedMap) GetNeighbours(node NodeId) (connected Nodes) {
-	defer func() {
-		if e:=recover(); e!=nil {
-			err := erx.NewSequent("Get node neighbours.", e)
-			err.AddV("node id", node)
-			panic(err)
-		}
-	}()
-	
-	if connectedMap, ok := g.connections[node]; ok {
-		connected = make(Nodes, len(connectedMap))
-		id := 0
-		for nodeId, connType := range connectedMap {
-			if connType==CT_UNDIRECTED {
-				connected[id] = nodeId
-				id++
+func (g *MixedMap) GetNeighbours(node NodeId) NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		
+		go func() {
+			defer func() {
+				if e:=recover(); e!=nil {
+					err := erx.NewSequent("Get node neighbours.", e)
+					err.AddV("node id", node)
+					panic(err)
+				}
+			}()
+			
+			if connectedMap, ok := g.connections[node]; ok {
+				for nodeId, connType := range connectedMap {
+					if connType==CT_UNDIRECTED {
+						ch <- nodeId
+					}
+				}
+			} else {
+				panic(erx.NewError("Node doesn't exists."))
 			}
-		}
-		connected = connected[0:id]
-	} else {
-		panic(erx.NewError("Node doesn't exists."))
+
+			close(ch)
+		}()
+		
+		return ch
 	}
 	
-	return
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator}) 
 }
 
 func (g *MixedMap) CheckEdge(from, to NodeId) bool {

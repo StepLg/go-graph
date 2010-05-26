@@ -62,16 +62,16 @@ type DirectedGraphArcsReader interface {
 	ArcsCnt() int
 
 	// Getting all graph sources.
-	GetSources() Nodes
+	GetSources() NodesIterable
 	
 	// Getting all graph sinks.
-	GetSinks() Nodes
+	GetSinks() NodesIterable
 	
 	// Getting node accessors
-	GetAccessors(node NodeId) Nodes
+	GetAccessors(node NodeId) NodesIterable
 	
 	// Getting node predecessors
-	GetPredecessors(node NodeId) Nodes
+	GetPredecessors(node NodeId) NodesIterable
 	
 	// Checking arrow existance between node1 and node2
 	//
@@ -111,7 +111,7 @@ type UndirectedGraphEdgesReader interface {
 	CheckEdge(node1, node2 NodeId) bool
 
 	// Getting all nodes, connected to given one
-	GetNeighbours(node NodeId) Nodes
+	GetNeighbours(node NodeId) NodesIterable
 	
 	// Iterate over graph edges
 	EdgesIter() <-chan Connection

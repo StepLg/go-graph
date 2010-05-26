@@ -6,22 +6,60 @@ import (
 	"github.com/StepLg/go-erx/src/erx"
 )
 
-type connectionsIterable struct {
-	arrows ConnectionsIterable
+type connectionsIterableHelper struct {
+	connIter ConnectionsIterable
 }
 
-func (ai connectionsIterable) Iter() <-chan interface{} {
+func (helper *connectionsIterableHelper) Iter() <-chan interface{} {
 	ch := make(chan interface{})
 	go func() {
-		for arr := range ai.arrows.ConnectionsIter() {
+		for arr := range helper.connIter.ConnectionsIter() {
 			ch <- arr
 		}
+		close(ch)
 	}()
 	return ch
 }
 
-func ArrowsToGenericIter(connIter ConnectionsIterable) Iterable {
-	return connectionsIterable{connIter}
+// Transform connections iterable to generic iterable object.
+func ConnectionsToGenericIter(connIter ConnectionsIterable) Iterable {
+	return Iterable(&connectionsIterableHelper{connIter:connIter})
+}
+
+type nodesIterableHelper struct {
+	nodesIter NodesIterable
+}
+
+func (helper *nodesIterableHelper) Iter() <-chan interface{} {
+	ch := make(chan interface{})
+	go func() {
+		for node := range helper.nodesIter.NodesIter() {
+			ch <- node
+		}
+		close(ch)
+	}()
+	return ch
+}
+
+func CollectNodes(iter NodesIterable) []NodeId {
+	res := make([]NodeId, 10)
+	i := 0
+	for node := range iter.NodesIter() {
+		if i==len(res) {
+			tmp := make([]NodeId, 2*i)
+			copy(tmp, res)
+			res = tmp
+		}
+		res[i] = node
+		i++
+	}
+	
+	return res[0:i]
+}
+
+// Transform nodes iterable to generic iterable object.
+func NodesToGenericIter(nodesIter NodesIterable) Iterable {
+	return Iterable(&nodesIterableHelper{nodesIter:nodesIter})
 }
 
 // Copy all arcs from iterator to directed graph

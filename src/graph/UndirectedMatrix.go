@@ -174,44 +174,33 @@ func (g *UndirectedMatrix) EdgesCnt() int {
 
 
 // Getting all nodes, connected to given one
-func (g *UndirectedMatrix) GetNeighbours(node NodeId) Nodes {
-	makeError := func(err interface{}) (res erx.Error) {
-		res = erx.NewSequentLevel("Get node neighbours.", err, 1)
-		res.AddV("node", node)
-		return
-	}
-	
-	defer func() {
-		// warning! such code generates wrong file/line info about error!
-		// see http://groups.google.com/group/golang-nuts/browse_thread/thread/66bd57dcdac63aa
-		// for details
-		if err := recover(); err!=nil {
-			panic(makeError(err))
-		}
-	}()
-	
-	if _, ok := g.nodeIds[node]; !ok {
-		panic(makeError(erx.NewError("Unknown node.")))
-	}
-	
-	result := make([]NodeId, g.size)
-	ind := 0
-	{
-		var connId int
-		for aNode, _ := range g.nodeIds {
-			if aNode==node {
-				continue
+func (g *UndirectedMatrix) GetNeighbours(node NodeId) NodesIterable {
+	iterator := func() <-chan NodeId {
+		ch := make(chan NodeId)
+		go func() {
+
+			if _, ok := g.nodeIds[node]; !ok {
+				panic(erx.NewError("Unknown node."))
 			}
-			connId= g.getConnectionId(node, aNode, false)
-			
-			if g.nodes[connId] {
-				result[ind] = aNode
-				ind++
+
+			var connId int
+			for aNode, _ := range g.nodeIds {
+				if aNode==node {
+					continue
+				}
+				connId= g.getConnectionId(node, aNode, false)
+				
+				if g.nodes[connId] {
+					ch <- aNode
+				}
 			}
-		}
+	
+			close(ch)
+		}()
+		return ch
 	}
 	
-	return result[0:ind]
+	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 func (g *UndirectedMatrix) EdgesIter() <-chan Connection {
