@@ -8,6 +8,7 @@ GOFILES=               \
 	algorithms.go      \
 	stuff.go           \
 	output.go          \
+	input.go           \
 	comparators.go     \
 	DirectedMap.go     \
 	UndirectedMatrix.go\

@@ -22,7 +22,7 @@ func MixedGraphsEquals(gr1, gr2 MixedGraphReader) bool {
 // Check if graph gr include all connections
 //
 // Warning!!! Due to channels issue 296: http://code.google.com/p/go/issues/detail?id=296
-// goroutine will block if not all nodes exists in graph
+// goroutine will block if not all connections exists in graph
 func MixedGraphIncludeConnections(gr MixedGraphReader, connections TypedConnectionsIterable) bool {
 	for conn := range connections.TypedConnectionsIter() {
 		switch conn.Type {
@@ -53,4 +53,94 @@ func GraphIncludeNodes(gr NodesChecker, nodesToCheck NodesIterable) bool {
 		}
 	}
 	return true
-} 
+}
+
+// Check if graph gr include all edges from edgesToCheck
+//
+// Warning!!! Due to channels issue 296: http://code.google.com/p/go/issues/detail?id=296
+// goroutine will block if function result is false
+func GraphIncludeEdges(gr UndirectedGraphReader, edgesToCheck EdgesIterable) bool {
+	for conn := range edgesToCheck.EdgesIter() {
+		if !gr.CheckEdge(conn.Tail, conn.Head) {
+			return false
+		}
+	}
+	return true
+}
+
+// Check if graph gr include all arcs from edgesToCheck
+//
+// Warning!!! Due to channels issue 296: http://code.google.com/p/go/issues/detail?id=296
+// goroutine will block if function result is false
+func GraphIncludeArcs(gr DirectedGraphReader, arcsToCheck ArcsIterable) bool {
+	for conn := range arcsToCheck.ArcsIter() {
+		if !gr.CheckArc(conn.Tail, conn.Head) {
+			return false
+		}
+	}
+	return true
+}
+
+// Check if graph gr include all arcs and all nodes from gr2
+//
+// Warning!!! Due to channels issue 296: http://code.google.com/p/go/issues/detail?id=296
+// goroutine will block if function result is false
+func DirectedGraphInclude(gr1, gr2 DirectedGraphReader) bool {
+	if !GraphIncludeNodes(gr1, gr2) {
+		return false
+	}
+	
+	if !GraphIncludeArcs(gr1, gr2) {
+		return false
+	}
+	
+	return true
+}
+
+// Check if graph gr include all edges and all nodes from gr2
+//
+// Warning!!! Due to channels issue 296: http://code.google.com/p/go/issues/detail?id=296
+// goroutine will block if function result is false
+func UndirectedGraphInclude(gr1, gr2 DirectedGraphReader) bool {
+	if !GraphIncludeNodes(gr1, gr2) {
+		return false
+	}
+	
+	if !GraphIncludeArcs(gr1, gr2) {
+		return false
+	}
+	
+	return true
+}
+
+// Check if two directed grahps are equal
+//
+// Warning!!! Due to channels issue 296: http://code.google.com/p/go/issues/detail?id=296
+// goroutine will block if function result is false
+func DirectedGraphsEquals(gr1, gr2 DirectedGraphReader) bool {
+	if !GraphIncludeNodes(gr1, gr2) || !GraphIncludeNodes(gr2, gr1) {
+		return false
+	}
+	
+	if !GraphIncludeArcs(gr1, gr2) || !GraphIncludeArcs(gr2, gr1) {
+		return false
+	}
+	
+	return true
+}
+
+// Check if two undirected grahps are equal
+//
+// Warning!!! Due to channels issue 296: http://code.google.com/p/go/issues/detail?id=296
+// goroutine will block if function result is false
+func UndirectedGraphsEquals(gr1, gr2 UndirectedGraphReader) bool {
+	if !GraphIncludeNodes(gr1, gr2) || !GraphIncludeNodes(gr2, gr1) {
+		return false
+	}
+	
+	if !GraphIncludeEdges(gr1, gr2) || !GraphIncludeEdges(gr2, gr1) {
+		return false
+	}
+	
+	return true
+}

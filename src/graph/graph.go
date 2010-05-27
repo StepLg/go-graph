@@ -18,6 +18,14 @@ type ConnectionsIterable interface {
 	ConnectionsIter() <-chan Connection
 }
 
+type EdgesIterable interface {
+	EdgesIter() <-chan Connection
+}
+
+type ArcsIterable interface {
+	ArcsIter() <-chan Connection
+}
+
 type TypedConnectionsIterable interface {
 	TypedConnectionsIter() <-chan TypedConnection
 }
@@ -58,6 +66,8 @@ type DirectedGraphArcsRemover interface {
 }
 
 type DirectedGraphArcsReader interface {
+	ArcsIterable
+	
 	// Getting arcs count in graph
 	ArcsCnt() int
 
@@ -77,9 +87,6 @@ type DirectedGraphArcsReader interface {
 	//
 	// node1 and node2 must exist in graph or error will be returned
 	CheckArc(node1, node2 NodeId) bool
-	
-	// Iterate over graph arcs
-	ArcsIter() <-chan Connection
 }
 
 type DirectedGraphReader interface {
@@ -102,6 +109,8 @@ type DirectedGraph interface {
 }
 
 type UndirectedGraphEdgesReader interface {
+	EdgesIterable
+
 	// Arrows count in graph
 	EdgesCnt() int
 
@@ -112,9 +121,6 @@ type UndirectedGraphEdgesReader interface {
 
 	// Getting all nodes, connected to given one
 	GetNeighbours(node NodeId) NodesIterable
-	
-	// Iterate over graph edges
-	EdgesIter() <-chan Connection
 }
 
 type UndirectedGraphEdgesWriter interface {

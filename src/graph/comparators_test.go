@@ -34,6 +34,20 @@ func ComparatorsSpec(c gospec.Context) {
 		c.Specify("must be equal to original", func() {
 			c.Expect(MixedGraphsEquals(gr, grcopy), IsTrue)
 			c.Expect(MixedGraphsEquals(grcopy, gr), IsTrue)
+			c.Expect(DirectedGraphsEquals(gr, grcopy), IsTrue)
+			c.Expect(DirectedGraphsEquals(grcopy, gr), IsTrue)
+			c.Expect(UndirectedGraphsEquals(gr, grcopy), IsTrue)
+			c.Expect(UndirectedGraphsEquals(grcopy, gr), IsTrue)
+		})
+		
+		c.Specify("must include all arcs in both ways", func() {
+			c.Expect(GraphIncludeArcs(gr, grcopy), IsTrue)
+			c.Expect(GraphIncludeArcs(grcopy, gr), IsTrue)
+		})
+
+		c.Specify("must include all edges in both ways", func() {
+			c.Expect(GraphIncludeEdges(gr, grcopy), IsTrue)
+			c.Expect(GraphIncludeEdges(grcopy, gr), IsTrue)
 		})
 	})
 	
@@ -54,6 +68,17 @@ func ComparatorsSpec(c gospec.Context) {
 			c.Expect(MixedGraphsEquals(gr, grcopy), IsFalse)
 			c.Expect(MixedGraphsEquals(grcopy, gr), IsFalse)
 		})
+
+		c.Specify("must include all arcs in both ways", func() {
+			c.Expect(GraphIncludeArcs(gr, grcopy), IsTrue)
+			c.Expect(GraphIncludeArcs(grcopy, gr), IsTrue)
+		})
+
+		c.Specify("must edges from origtinal graph", func() {
+			c.Expect(GraphIncludeEdges(gr, grcopy), IsFalse)
+			c.Expect(GraphIncludeEdges(grcopy, gr), IsTrue)
+		})
+
 	})
 }
 
