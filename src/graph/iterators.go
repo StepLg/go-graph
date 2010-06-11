@@ -41,6 +41,21 @@ func (helper *nodesIterableHelper) Iter() <-chan interface{} {
 	return ch
 }
 
+type nodesGenericIterableHelper struct {
+	iter Iterable
+}
+
+func (helper *nodesGenericIterableHelper) NodesIter() <-chan NodeId {
+	ch := make(chan NodeId)
+	go func() {
+		for node := range helper.iter.Iter() {
+			ch <- node.(NodeId)
+		}
+		close(ch)
+	}()
+	return ch
+}
+
 func CollectNodes(iter NodesIterable) []NodeId {
 	res := make([]NodeId, 10)
 	i := 0
@@ -60,6 +75,10 @@ func CollectNodes(iter NodesIterable) []NodeId {
 // Transform nodes iterable to generic iterable object.
 func NodesToGenericIter(nodesIter NodesIterable) Iterable {
 	return Iterable(&nodesIterableHelper{nodesIter:nodesIter})
+}
+
+func GenericToNodesIter(iter Iterable) NodesIterable {
+	return NodesIterable(&nodesGenericIterableHelper{iter:iter})
 }
 
 // Copy all arcs from iterator to directed graph
