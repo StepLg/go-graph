@@ -6,6 +6,20 @@ import (
 	. "github.com/orfjackal/gospec/src/gospec"
 )
 
+func generateMixedGraph1() MixedGraph {
+	gr := NewMixedMatrix(6)
+	gr.AddArc(1, 2)
+	gr.AddArc(2, 3)
+	gr.AddArc(3, 4)
+	gr.AddArc(2, 4)
+	gr.AddArc(4, 5)
+	gr.AddArc(1, 6)
+	gr.AddArc(2, 6)
+	gr.AddEdge(6, 4)
+
+	return gr	
+}
+
 func CheckDirectedPathSpec(c gospec.Context, checkPathFunction CheckDirectedPath) {
 	gr := NewDirectedMap()
 	gr.AddArc(1, 2)
@@ -46,15 +60,7 @@ func CheckDirectedPathSpec(c gospec.Context, checkPathFunction CheckDirectedPath
 }
 
 func CheckMixedPathSpec(c gospec.Context, checkPathFunction CheckMixedPath) {
-	gr := NewMixedMatrix(6)
-	gr.AddArc(1, 2)
-	gr.AddArc(2, 3)
-	gr.AddArc(3, 4)
-	gr.AddArc(2, 4)
-	gr.AddArc(4, 5)
-	gr.AddArc(1, 6)
-	gr.AddArc(2, 6)
-	gr.AddEdge(6, 4)
+	gr := generateMixedGraph1()
 	
 	c.Specify("Check path to self", func() {
 		c.Expect(checkPathFunction(gr, 1, 1, nil, SimpleWeightFunc), IsTrue) 
@@ -96,23 +102,22 @@ func CheckMixedPathSpec(c gospec.Context, checkPathFunction CheckMixedPath) {
 }
 
 func GetAllMixedPathsSpec(c gospec.Context) {
-	gr := NewMixedMatrix(6)
-	gr.AddArc(1, 2)
-	gr.AddArc(2, 3)
-	gr.AddArc(3, 4)
-	gr.AddArc(2, 4)
-	gr.AddArc(4, 5)
-	gr.AddArc(1, 6)
-	gr.AddArc(2, 6)
-	gr.AddEdge(6, 4)
-	
-	// We doesn't specify order to output found paths, so 
-	// i don't know how to easy test result.
-	/*	
-	for path := range GetAllMixedPaths(gr, 1, 6) {
-		// fmt.Println(path)
-	}
+	gr := generateMixedGraph1()
+	/*
+	[1 2 4 6]          
+	[1 2 6]            
+	[1 2 3 4 6]        
+	[1 6]
 	*/
+
+	pathsCnt := 0
+	
+	for path := range GetAllMixedPaths(gr, 1, 6) {
+		pathsCnt++
+		c.Expect(ContainMixedPath(gr, path, true), IsTrue)
+	}
+	
+	c.Expect(pathsCnt, Equals, 4)
 }
 
 func TestSearch(t *testing.T) {

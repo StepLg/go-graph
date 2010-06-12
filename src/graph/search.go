@@ -177,3 +177,15 @@ func getAllPaths_helper(neighboursExtractor AllNeighboursExtractor, from, to Nod
 	}
 	return
 }
+
+func GetAllDirectedPaths(gr DirectedGraphArcsReader, from, to NodeId) <-chan []NodeId {
+	return GetAllPaths(NewDirectedNeighboursExtractor(gr), from, to)
+}
+
+func GetAllUndirectedPaths(gr UndirectedGraphEdgesReader, from, to NodeId) <-chan []NodeId {
+	return GetAllPaths(NewUndirectedNeighboursExtractor(gr), from, to)
+}
+
+func GetAllMixedPaths(gr MixedGraphConnectionsReader, from, to NodeId) <-chan []NodeId {
+	return GetAllPaths(NewMixedNeighboursExtractor(gr), from, to)
+}
