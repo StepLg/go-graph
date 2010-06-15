@@ -5,12 +5,12 @@ import (
 )
 
 // Copy graph og to rg except args i->j, where exists non direct path i->...->j
-func ReduceDirectPaths(og DirectedGraphReader, rg DirectedGraphArcsWriter, stopFunc func(from, to NodeId, weight float64) bool) {
+func ReduceDirectPaths(og DirectedGraphReader, rg DirectedGraphArcsWriter, stopFunc func(from, to VertexId, weight float64) bool) {
 	var checkStopFunc StopFunc
 	for conn := range og.ArcsIter() {
 		filteredGraph := NewDirectedGraphArcFilter(og, conn.Tail, conn.Head)
 		if stopFunc!=nil {
-			checkStopFunc = func(node NodeId, weight float64) bool {
+			checkStopFunc = func(node VertexId, weight float64) bool {
 				return stopFunc(conn.Tail, node, weight)
 			}
 		} else {
@@ -26,13 +26,13 @@ func ReduceDirectPaths(og DirectedGraphReader, rg DirectedGraphArcsWriter, stopF
 //
 // Return nodes in topological order. If graph has cycles, then hasCycles==true 
 // and nodes==nil in function result.
-func TopologicalSort(gr DirectedGraphReader) (nodes []NodeId, hasCycles bool) {
+func TopologicalSort(gr DirectedGraphReader) (nodes []VertexId, hasCycles bool) {
 	hasCycles = false
-	nodes = make([]NodeId, gr.NodesCnt())
+	nodes = make([]VertexId, gr.NodesCnt())
 	pos := len(nodes)
 	// map of node status. If node doesn't present in map - white color,
 	// node in map with false value - grey color, and with true value - black color
-	status := make(map[NodeId]bool)
+	status := make(map[VertexId]bool)
 	for source := range gr.GetSources().NodesIter() {
 		pos, hasCycles = topologicalSortHelper(gr, source, nodes[0:pos], status)
 		if hasCycles {
@@ -48,7 +48,7 @@ func TopologicalSort(gr DirectedGraphReader) (nodes []NodeId, hasCycles bool) {
 	return
 }
 
-func topologicalSortHelper(gr DirectedGraphReader, curNode NodeId, nodes []NodeId, status map[NodeId]bool) (pos int, hasCycles bool) {
+func topologicalSortHelper(gr DirectedGraphReader, curNode VertexId, nodes []VertexId, status map[VertexId]bool) (pos int, hasCycles bool) {
 	if isBlack, ok := status[curNode]; ok {
 		err := erx.NewError("Internal error in topological sort: node already in status map")
 		err.AddV("node id", curNode)
@@ -91,13 +91,13 @@ func topologicalSortHelper(gr DirectedGraphReader, curNode NodeId, nodes []NodeI
 // Warning! All accessors subgraphs of each source node MUST NOT intersect.
 // Nodes doesn't duplicate, so if some of sources have shared subgraph, then
 // nodes from this subgraph will appear only once after the first source node
-func TopologicalSortFromSources(gr DirectedGraphReader, sources []NodeId) (nodes []NodeId, hasCycles bool) {
+func TopologicalSortFromSources(gr DirectedGraphReader, sources []VertexId) (nodes []VertexId, hasCycles bool) {
 	hasCycles = false
-	nodes = make([]NodeId, gr.NodesCnt())
+	nodes = make([]VertexId, gr.NodesCnt())
 	pos := len(nodes)
 	// map of node status. If node doesn't present in map - white color,
 	// node in map with false value - grey color, and with true value - black color
-	status := make(map[NodeId]bool)
+	status := make(map[VertexId]bool)
 	for _, source := range sources {
 		pos, hasCycles = topologicalSortHelper(gr, source, nodes[0:pos], status)
 		if hasCycles {
@@ -110,7 +110,7 @@ func TopologicalSortFromSources(gr DirectedGraphReader, sources []NodeId) (nodes
 	return
 }
 
-func splitMixedGraph_helper(node NodeId, color int, gr MixedGraphReader, nodesColor map[NodeId]int) {
+func splitMixedGraph_helper(node VertexId, color int, gr MixedGraphReader, nodesColor map[VertexId]int) {
 	nodesColor[node] = color
 	// todo: neighbours and accesors as iterators
 	for next := range gr.GetNeighbours(node).NodesIter() {
@@ -148,7 +148,7 @@ func splitMixedGraph_helper(node NodeId, color int, gr MixedGraphReader, nodesCo
 //
 // @todo: Add creator function to control type of new created graphs
 func SplitMixedGraph(gr MixedGraphReader) []MixedGraph {
-	nodesColor := make(map[NodeId]int)
+	nodesColor := make(map[VertexId]int)
 	curColor := 0
 	
 	for curNode := range gr.GetSources().NodesIter() {

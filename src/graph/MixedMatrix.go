@@ -7,7 +7,7 @@ import (
 type MixedMatrix struct {
 	nodes []MixedConnectionType
 	size int
-	nodeIds map[NodeId]int // internal node ids, used in nodes array
+	VertexIds map[VertexId]int // internal node ids, used in nodes array
 	edgesCnt int
 	arcsCnt int
 }
@@ -19,7 +19,7 @@ func NewMixedMatrix(size int) *MixedMatrix {
 	g := new(MixedMatrix)
 	g.nodes = make([]MixedConnectionType, size*(size-1)/2)
 	g.size = size
-	g.nodeIds = make(map[NodeId]int)
+	g.VertexIds = make(map[VertexId]int)
 	return g
 }
 
@@ -27,7 +27,7 @@ func NewMixedMatrix(size int) *MixedMatrix {
 // GraphNodesWriter
 
 // Adding single node to graph
-func (gr *MixedMatrix) AddNode(node NodeId) {
+func (gr *MixedMatrix) AddNode(node VertexId) {
 	defer func() {
 		if e := recover(); e!=nil {
 			err := erx.NewSequent("Add node to graph.", e)
@@ -36,15 +36,15 @@ func (gr *MixedMatrix) AddNode(node NodeId) {
 		}
 	}()
 	
-	if _, ok := gr.nodeIds[node]; ok {
+	if _, ok := gr.VertexIds[node]; ok {
 		panic(erx.NewError("Node already exists."))
 	}
 	
-	if len(gr.nodeIds) == gr.size {
+	if len(gr.VertexIds) == gr.size {
 		panic(erx.NewError("Not enough space to add new node"))
 	}
 	
-	gr.nodeIds[node] = len(gr.nodeIds)
+	gr.VertexIds[node] = len(gr.VertexIds)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -52,14 +52,14 @@ func (gr *MixedMatrix) AddNode(node NodeId) {
 
 // Getting nodes count in graph
 func (gr *MixedMatrix) NodesCnt() int {
-	return len(gr.nodeIds)
+	return len(gr.VertexIds)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // GraphNodesRemover
 
 // Removing node from graph
-func (gr *MixedMatrix) RemoveNode(node NodeId) {
+func (gr *MixedMatrix) RemoveNode(node VertexId) {
 	panic("Function RemoveNode doesn't implement in MixedMatrix graph yet.")
 }
 	
@@ -68,8 +68,8 @@ func (gr *MixedMatrix) RemoveNode(node NodeId) {
 func (gr *MixedMatrix) ConnectionsIter() <-chan Connection {
 	ch := make(chan Connection)
 	go func() {
-		for from, _ := range gr.nodeIds {
-			for to, _ := range gr.nodeIds {
+		for from, _ := range gr.VertexIds {
+			for to, _ := range gr.VertexIds {
 				if from>=to {
 					continue
 				}
@@ -87,11 +87,11 @@ func (gr *MixedMatrix) ConnectionsIter() <-chan Connection {
 
 ///////////////////////////////////////////////////////////////////////////////
 // NodesIterable
-func (gr *MixedMatrix) NodesIter() <-chan NodeId {
-	ch := make(chan NodeId)
+func (gr *MixedMatrix) NodesIter() <-chan VertexId {
+	ch := make(chan VertexId)
 	go func() {
-		for nodeId, _ := range gr.nodeIds {
-			ch <- nodeId
+		for VertexId, _ := range gr.VertexIds {
+			ch <- VertexId
 		}
 		close(ch)
 	}()
@@ -101,8 +101,8 @@ func (gr *MixedMatrix) NodesIter() <-chan NodeId {
 ///////////////////////////////////////////////////////////////////////////////
 // NodesChecker
 
-func (g *MixedMatrix) CheckNode(node NodeId) (exists bool) {
-	_, exists = g.nodeIds[node]
+func (g *MixedMatrix) CheckNode(node VertexId) (exists bool) {
+	_, exists = g.VertexIds[node]
 	return
 }
 
@@ -110,7 +110,7 @@ func (g *MixedMatrix) CheckNode(node NodeId) (exists bool) {
 // UndirectedGraphEdgesWriter
 
 // Adding new edge to graph
-func (gr *MixedMatrix) AddEdge(node1, node2 NodeId) {
+func (gr *MixedMatrix) AddEdge(node1, node2 VertexId) {
 	defer func() {
 		if e := recover(); e!=nil {
 			err := erx.NewSequent("Add edge to mixed graph.", e)
@@ -136,7 +136,7 @@ func (gr *MixedMatrix) AddEdge(node1, node2 NodeId) {
 // UndirectedGraphEdgesRemover
 
 // Removing edge, connecting node1 and node2
-func (gr *MixedMatrix) RemoveEdge(node1, node2 NodeId) {
+func (gr *MixedMatrix) RemoveEdge(node1, node2 VertexId) {
 	defer func() {
 		if e := recover(); e!=nil {
 			err := erx.NewSequent("Remove edge from mixed graph.", e)
@@ -169,7 +169,7 @@ func (gr *MixedMatrix) EdgesCnt() int {
 // Checking edge existance between node1 and node2
 //
 // node1 and node2 must exist in graph or error will be returned
-func (gr *MixedMatrix) CheckEdge(node1, node2 NodeId) bool {
+func (gr *MixedMatrix) CheckEdge(node1, node2 VertexId) bool {
 	defer func() {
 		if e := recover(); e!=nil {
 			err := erx.NewSequent("Check edge in mixed graph.", e)
@@ -187,9 +187,9 @@ func (gr *MixedMatrix) CheckEdge(node1, node2 NodeId) bool {
 }
 
 // Getting all nodes, connected to given one
-func (gr *MixedMatrix) GetNeighbours(node NodeId) NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+func (gr *MixedMatrix) GetNeighbours(node VertexId) NodesIterable {
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		
 		go func() {
 			defer func() {
@@ -200,7 +200,7 @@ func (gr *MixedMatrix) GetNeighbours(node NodeId) NodesIterable {
 				}
 			}()
 			
-			for neighbour, _ := range gr.nodeIds {
+			for neighbour, _ := range gr.VertexIds {
 				if node==neighbour {
 					// skipping loops
 					continue
@@ -224,7 +224,7 @@ func (gr *MixedMatrix) GetNeighbours(node NodeId) NodesIterable {
 // DirectedGraphArcsWriter
 
 // Adding directed arc to graph
-func (gr *MixedMatrix) AddArc(tail, head NodeId) {
+func (gr *MixedMatrix) AddArc(tail, head VertexId) {
 	defer func() {
 		if e := recover(); e!=nil {
 			err := erx.NewSequent("Add arc to mixed graph.", e)
@@ -255,7 +255,7 @@ func (gr *MixedMatrix) AddArc(tail, head NodeId) {
 // DirectedGraphArcsRemover
 
 // Removding directed arc
-func (gr *MixedMatrix) RemoveArc(tail, head NodeId) {
+func (gr *MixedMatrix) RemoveArc(tail, head VertexId) {
 	defer func() {
 		if e := recover(); e!=nil {
 			err := erx.NewSequent("Remove arc from mixed graph.", e)
@@ -294,12 +294,12 @@ func (gr *MixedMatrix) ArcsCnt() int {
 
 // Getting all graph sources.
 func (gr *MixedMatrix) GetSources() NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		go func() {
-			for tailNode, _ := range gr.nodeIds {
+			for tailNode, _ := range gr.VertexIds {
 				hasPredecessors := false
-				for headNode, _ := range gr.nodeIds {
+				for headNode, _ := range gr.VertexIds {
 					if tailNode==headNode {
 						continue
 					}
@@ -332,12 +332,12 @@ func (gr *MixedMatrix) GetSources() NodesIterable {
 
 // Getting all graph sinks.
 func (gr *MixedMatrix) GetSinks() NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		go func() {
-			for tailNode, _ := range gr.nodeIds {
+			for tailNode, _ := range gr.VertexIds {
 				hasPredecessors := false
-				for headNode, _ := range gr.nodeIds {
+				for headNode, _ := range gr.VertexIds {
 					if tailNode==headNode {
 						continue
 					}
@@ -369,9 +369,9 @@ func (gr *MixedMatrix) GetSinks() NodesIterable {
 }
 
 // Getting node accessors
-func (gr *MixedMatrix) GetAccessors(node NodeId) NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+func (gr *MixedMatrix) GetAccessors(node VertexId) NodesIterable {
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		
 		go func() {
 			defer func() {
@@ -382,7 +382,7 @@ func (gr *MixedMatrix) GetAccessors(node NodeId) NodesIterable {
 				}
 			}()
 			
-			for headNode, _ := range gr.nodeIds {
+			for headNode, _ := range gr.VertexIds {
 				if node==headNode {
 					// skipping loops
 					continue
@@ -411,9 +411,9 @@ func (gr *MixedMatrix) GetAccessors(node NodeId) NodesIterable {
 }
 
 // Getting node predecessors
-func (gr *MixedMatrix) GetPredecessors(node NodeId) NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+func (gr *MixedMatrix) GetPredecessors(node VertexId) NodesIterable {
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		
 		go func() {
 			defer func() {
@@ -424,7 +424,7 @@ func (gr *MixedMatrix) GetPredecessors(node NodeId) NodesIterable {
 				}
 			}()
 			
-			for tailNode, _ := range gr.nodeIds {
+			for tailNode, _ := range gr.VertexIds {
 				if node==tailNode {
 					// skipping loops
 					continue
@@ -455,7 +455,7 @@ func (gr *MixedMatrix) GetPredecessors(node NodeId) NodesIterable {
 // Checking arrow existance between node1 and node2
 //
 // node1 and node2 must exist in graph or error will be returned
-func (gr *MixedMatrix) CheckArc(tail, head NodeId) bool {
+func (gr *MixedMatrix) CheckArc(tail, head VertexId) bool {
 	defer func() {
 		if e := recover(); e!=nil {
 			err := erx.NewSequent("Check arc in mixed graph.", e)
@@ -482,8 +482,8 @@ func (gr *MixedMatrix) CheckArc(tail, head NodeId) bool {
 func (gr *MixedMatrix) EdgesIter() <-chan Connection {
 	ch := make(chan Connection)
 	go func() {
-		for from, _ := range gr.nodeIds {
-			for to, _ := range gr.nodeIds {
+		for from, _ := range gr.VertexIds {
+			for to, _ := range gr.VertexIds {
 				if from>=to {
 					continue
 				}
@@ -502,8 +502,8 @@ func (gr *MixedMatrix) EdgesIter() <-chan Connection {
 func (gr *MixedMatrix) ArcsIter() <-chan Connection {
 	ch := make(chan Connection)
 	go func() {
-		for from, _ := range gr.nodeIds {
-			for to, _ := range gr.nodeIds {
+		for from, _ := range gr.VertexIds {
+			for to, _ := range gr.VertexIds {
 				if from>=to {
 					continue
 				}
@@ -522,7 +522,7 @@ func (gr *MixedMatrix) ArcsIter() <-chan Connection {
 	return ch
 }
 
-func (gr *MixedMatrix) CheckEdgeType(tail NodeId, head NodeId) MixedConnectionType {
+func (gr *MixedMatrix) CheckEdgeType(tail VertexId, head VertexId) MixedConnectionType {
 	defer func() {
 		if e := recover(); e!=nil {
 			err := erx.NewSequent("Check edge type in mixed graph.", e)
@@ -539,8 +539,8 @@ func (gr *MixedMatrix) CheckEdgeType(tail NodeId, head NodeId) MixedConnectionTy
 func (gr *MixedMatrix) TypedConnectionsIter() <-chan TypedConnection {
 	ch := make(chan TypedConnection)
 	go func() {
-		for from, _ := range gr.nodeIds {
-			for to, _ := range gr.nodeIds {
+		for from, _ := range gr.VertexIds {
+			for to, _ := range gr.VertexIds {
 				if from>=to {
 					continue
 				}
@@ -569,7 +569,7 @@ func (gr *MixedMatrix) TypedConnectionsIter() <-chan TypedConnection {
 	return ch
 }
 
-func (gr *MixedMatrix) getConnectionId(node1, node2 NodeId, create bool) int {
+func (gr *MixedMatrix) getConnectionId(node1, node2 VertexId, create bool) int {
 	defer func() {
 		if e := recover(); e!=nil {
 			err := erx.NewSequent("Calculating connection id.", e)
@@ -582,8 +582,8 @@ func (gr *MixedMatrix) getConnectionId(node1, node2 NodeId, create bool) int {
 	var id1, id2 int
 	node1Exist := false
 	node2Exist := false
-	id1, node1Exist = gr.nodeIds[node1]
-	id2, node2Exist = gr.nodeIds[node2]
+	id1, node1Exist = gr.VertexIds[node1]
+	id2, node2Exist = gr.VertexIds[node2]
 	
 	// checking for errors
 	{
@@ -599,11 +599,11 @@ func (gr *MixedMatrix) getConnectionId(node1, node2 NodeId, create bool) int {
 			}
 		} else if !node1Exist || !node2Exist {
 			if node1Exist && node2Exist {
-				if gr.size - len(gr.nodeIds) < 2 {
+				if gr.size - len(gr.VertexIds) < 2 {
 					panic(erx.NewError("Not enough space to create two new nodes."))
 				}
 			} else {
-				if gr.size - len(gr.nodeIds) < 1 {
+				if gr.size - len(gr.VertexIds) < 1 {
 					panic(erx.NewError("Not enough space to create new node."))
 				}
 			}
@@ -611,13 +611,13 @@ func (gr *MixedMatrix) getConnectionId(node1, node2 NodeId, create bool) int {
 	}
 	
 	if !node1Exist {
-		id1 = int(len(gr.nodeIds))
-		gr.nodeIds[node1] = id1
+		id1 = int(len(gr.VertexIds))
+		gr.VertexIds[node1] = id1
 	}
 
 	if !node2Exist {
-		id2 = int(len(gr.nodeIds))
-		gr.nodeIds[node2] = id2
+		id2 = int(len(gr.VertexIds))
+		gr.VertexIds[node2] = id2
 	}
 	
 	// switching id1, id2 in order to id1 < id2

@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func (node NodeId) String() string {
+func (node VertexId) String() string {
 	return strconv.Itoa(int(uint(node)))
 }
 
@@ -75,10 +75,10 @@ func styleMapToString(style map[string]string) string {
 	return "[" + strings.Join(chunks, ",") + "]"
 }
 
-type DotNodeStyleFunc func(node NodeId) map[string]string
+type DotNodeStyleFunc func(node VertexId) map[string]string
 type DotConnectionStyleFunc func(conn TypedConnection) map[string]string
 
-func SimpleNodeStyle(node NodeId) map[string]string {
+func SimpleNodeStyle(node VertexId) map[string]string {
 	style := make(map[string]string)
 	style["label"] = node.String()
 	return style

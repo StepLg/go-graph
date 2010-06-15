@@ -148,9 +148,9 @@ func UndirectedGraphsEquals(gr1, gr2 UndirectedGraphReader) bool {
 // Interface for ContainPath function.
 type NodeAndConnectionChecker interface {
 	// Check if node exist in graph.
-	CheckNode(NodeId) bool
+	CheckNode(VertexId) bool
 	// Check if there is connection between from and to nodes in graph.
-	CheckConnection(from, to NodeId) bool
+	CheckConnection(from, to VertexId) bool
 }
 
 // Generic function to check if graph contain specific path.
@@ -161,7 +161,7 @@ type NodeAndConnectionChecker interface {
 // unexistNodePanic flag is used to point wether or not to panic if we figure out that
 // one of the nodes in path doesn't exist in graph. If unexistNodePanic is false, then
 // result of the function will be false.
-func ContainPath(gr NodeAndConnectionChecker, path []NodeId, unexistNodePanic bool) bool {
+func ContainPath(gr NodeAndConnectionChecker, path []VertexId, unexistNodePanic bool) bool {
 	defer func() {
 		if e:=recover(); e!=nil {
 			err := erx.NewSequent("Checking if graph contain path", e)
@@ -212,11 +212,11 @@ type undirectedNodeAndConnectionChecker struct {
 	gr UndirectedGraphReader
 }
 
-func (checker *undirectedNodeAndConnectionChecker) CheckNode(node NodeId) bool {
+func (checker *undirectedNodeAndConnectionChecker) CheckNode(node VertexId) bool {
 	return checker.gr.CheckNode(node)
 }
 
-func (checker *undirectedNodeAndConnectionChecker) CheckConnection(from, to NodeId) bool {
+func (checker *undirectedNodeAndConnectionChecker) CheckConnection(from, to VertexId) bool {
 	return checker.gr.CheckEdge(from, to)
 }
 
@@ -225,11 +225,11 @@ type directedNodeAndConnectionChecker struct {
 	gr DirectedGraphReader
 }
 
-func (checker *directedNodeAndConnectionChecker) CheckNode(node NodeId) bool {
+func (checker *directedNodeAndConnectionChecker) CheckNode(node VertexId) bool {
 	return checker.gr.CheckNode(node)
 }
 
-func (checker *directedNodeAndConnectionChecker) CheckConnection(from, to NodeId) bool {
+func (checker *directedNodeAndConnectionChecker) CheckConnection(from, to VertexId) bool {
 	return checker.gr.CheckArc(from, to)
 }
 
@@ -238,11 +238,11 @@ type mixedNodeAndConnectionChecker struct {
 	gr MixedGraphReader
 }
 
-func (checker *mixedNodeAndConnectionChecker) CheckNode(node NodeId) bool {
+func (checker *mixedNodeAndConnectionChecker) CheckNode(node VertexId) bool {
 	return checker.gr.CheckNode(node)
 }
 
-func (checker *mixedNodeAndConnectionChecker) CheckConnection(from, to NodeId) bool {
+func (checker *mixedNodeAndConnectionChecker) CheckConnection(from, to VertexId) bool {
 	connType := checker.gr.CheckEdgeType(from, to)
 	return connType==CT_DIRECTED || connType==CT_UNDIRECTED
 }
@@ -252,7 +252,7 @@ func (checker *mixedNodeAndConnectionChecker) CheckConnection(from, to NodeId) b
 // unexistNodePanic flag is used to point wether or not to panic if we figure out that
 // one of the nodes in path doesn't exist in graph. If unexistNodePanic is false, then
 // result of the function will be false.
-func ContainUndirectedPath(gr UndirectedGraphReader, path []NodeId, unexistNodePanic bool) bool {
+func ContainUndirectedPath(gr UndirectedGraphReader, path []VertexId, unexistNodePanic bool) bool {
 	return ContainPath(NodeAndConnectionChecker(&undirectedNodeAndConnectionChecker{gr:gr}), path, unexistNodePanic)
 }
 
@@ -261,7 +261,7 @@ func ContainUndirectedPath(gr UndirectedGraphReader, path []NodeId, unexistNodeP
 // unexistNodePanic flag is used to point wether or not to panic if we figure out that
 // one of the nodes in path doesn't exist in graph. If unexistNodePanic is false, then
 // result of the function will be false.
-func ContainDirectedPath(gr DirectedGraphReader, path []NodeId, unexistNodePanic bool) bool {
+func ContainDirectedPath(gr DirectedGraphReader, path []VertexId, unexistNodePanic bool) bool {
 	return ContainPath(NodeAndConnectionChecker(&directedNodeAndConnectionChecker{gr:gr}), path, unexistNodePanic)
 }
 
@@ -274,6 +274,6 @@ func ContainDirectedPath(gr DirectedGraphReader, path []NodeId, unexistNodePanic
 // unexistNodePanic flag is used to point wether or not to panic if we figure out that
 // one of the nodes in path doesn't exist in graph. If unexistNodePanic is false, then
 // result of the function will be false.
-func ContainMixedPath(gr MixedGraphReader, path []NodeId, unexistNodePanic bool) bool {
+func ContainMixedPath(gr MixedGraphReader, path []VertexId, unexistNodePanic bool) bool {
 	return ContainPath(NodeAndConnectionChecker(&mixedNodeAndConnectionChecker{gr:gr}), path, unexistNodePanic)
 }

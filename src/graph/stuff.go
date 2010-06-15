@@ -24,7 +24,7 @@ func (t MixedConnectionType) String() string {
 	return "unknown"
 }
 
-func NewUndirectedConnection(n1, n2 NodeId) TypedConnection {
+func NewUndirectedConnection(n1, n2 VertexId) TypedConnection {
 	if n1>n2 {
 		n1, n2 = n2, n1
 	}
@@ -37,7 +37,7 @@ func NewUndirectedConnection(n1, n2 NodeId) TypedConnection {
 	}
 }
 
-func NewDirectedConnection(tail, head NodeId) TypedConnection {
+func NewDirectedConnection(tail, head VertexId) TypedConnection {
 	return TypedConnection {
 		Connection: Connection {
 			Tail: tail,
@@ -49,7 +49,7 @@ func NewDirectedConnection(tail, head NodeId) TypedConnection {
 
 // internal struct to store node with it's priority for priority queue
 type priority_data_t struct {
-	Node NodeId
+	Node VertexId
 	Priority float64
 }
 
@@ -70,15 +70,15 @@ func (d nodesPriority) Len() int {
 // Nodes priority queue
 type nodesPriorityQueue interface {
 	// Add new item to queue
-	Add(node NodeId, priority float64)
+	Add(node VertexId, priority float64)
 	// Get item with max priority and remove it from the queue
 	//
 	// Panic if queue is empty
-	Next() (NodeId, float64)
+	Next() (VertexId, float64)
 	// Get item with max priority without removing it from the queue
 	//
 	// Panic if queue is empty
-	Pick() (NodeId, float64)
+	Pick() (VertexId, float64)
 	// Total queue size
 	Size() int
 	// Check if queue is empty
@@ -90,7 +90,7 @@ type nodesPriorityQueue interface {
 // Warning! It's very UNEFFICIENT!!!
 type nodesPriorityQueueSimple struct {
 	data nodesPriority
-	nodesIndex map[NodeId]int
+	nodesIndex map[VertexId]int
 	size int
 }
 
@@ -106,14 +106,14 @@ func newPriorityQueueSimple(initialSize int) *nodesPriorityQueueSimple {
 	
 	q := &nodesPriorityQueueSimple {
 		data: make(nodesPriority, initialSize),
-		nodesIndex: make(map[NodeId]int),
+		nodesIndex: make(map[VertexId]int),
 		size: 0,
 	}
 	return q
 }
 
 // Add new item to queue
-func (q *nodesPriorityQueueSimple) Add(node NodeId, priority float64) {
+func (q *nodesPriorityQueueSimple) Add(node VertexId, priority float64) {
 	defer func() {
 		if e := recover(); e!=nil {
 			err := erx.NewSequent("", e)
@@ -168,7 +168,7 @@ func (q *nodesPriorityQueueSimple) Add(node NodeId, priority float64) {
 // Get item with max priority and remove it from the queue
 //
 // Panic if queue is empty
-func (q *nodesPriorityQueueSimple) Next() (NodeId, float64) {
+func (q *nodesPriorityQueueSimple) Next() (VertexId, float64) {
 	if q.Empty() {
 		panic("Can't pick from empty queue.")
 	}
@@ -182,7 +182,7 @@ func (q *nodesPriorityQueueSimple) Next() (NodeId, float64) {
 // Get item with max priority without removing it from the queue
 //
 // Panic if queue is empty
-func (q *nodesPriorityQueueSimple) Pick() (NodeId, float64) {
+func (q *nodesPriorityQueueSimple) Pick() (VertexId, float64) {
 	if q.Empty() {
 		panic("Can't pick from empty queue.")
 	}
@@ -201,7 +201,7 @@ func (q *nodesPriorityQueueSimple) Empty() bool {
 	return q.Size()==0
 }
 
-func matrixConnectionsIndexer(node1, node2 NodeId, nodeIds map[NodeId]int, size int, create bool) int {
+func matrixConnectionsIndexer(node1, node2 VertexId, VertexIds map[VertexId]int, size int, create bool) int {
 	defer func() {
 		if e := recover(); e!=nil {
 			err := erx.NewSequent("Calculating connection id.", e)
@@ -214,8 +214,8 @@ func matrixConnectionsIndexer(node1, node2 NodeId, nodeIds map[NodeId]int, size 
 	var id1, id2 int
 	node1Exist := false
 	node2Exist := false
-	id1, node1Exist = nodeIds[node1]
-	id2, node2Exist = nodeIds[node2]
+	id1, node1Exist = VertexIds[node1]
+	id2, node2Exist = VertexIds[node2]
 	
 	// checking for errors
 	{
@@ -231,11 +231,11 @@ func matrixConnectionsIndexer(node1, node2 NodeId, nodeIds map[NodeId]int, size 
 			}
 		} else if !node1Exist || !node2Exist {
 			if node1Exist && node2Exist {
-				if size - len(nodeIds) < 2 {
+				if size - len(VertexIds) < 2 {
 					panic(erx.NewError("Not enough space to create two new nodes."))
 				}
 			} else {
-				if size - len(nodeIds) < 1 {
+				if size - len(VertexIds) < 1 {
 					panic(erx.NewError("Not enough space to create new node."))
 				}
 			}
@@ -243,13 +243,13 @@ func matrixConnectionsIndexer(node1, node2 NodeId, nodeIds map[NodeId]int, size 
 	}
 	
 	if !node1Exist {
-		id1 = int(len(nodeIds))
-		nodeIds[node1] = id1
+		id1 = int(len(VertexIds))
+		VertexIds[node1] = id1
 	}
 
 	if !node2Exist {
-		id2 = int(len(nodeIds))
-		nodeIds[node2] = id2
+		id2 = int(len(VertexIds))
+		VertexIds[node2] = id2
 	}
 	
 	// switching id1, id2 in order to id1 < id2
@@ -324,9 +324,9 @@ func EdgesToTypedConnIterable(gr UndirectedGraphEdgesReader) TypedConnectionsIte
 
 // Helper struct to create nodes iterators with lambda functions
 type nodesIterableLambdaHelper struct {
-	iterFunc func() <-chan NodeId
+	iterFunc func() <-chan VertexId
 }
 
-func (helper *nodesIterableLambdaHelper) NodesIter() <-chan NodeId {
+func (helper *nodesIterableLambdaHelper) NodesIter() <-chan VertexId {
 	return helper.iterFunc()
 }

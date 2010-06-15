@@ -45,23 +45,23 @@ type nodesGenericIterableHelper struct {
 	iter Iterable
 }
 
-func (helper *nodesGenericIterableHelper) NodesIter() <-chan NodeId {
-	ch := make(chan NodeId)
+func (helper *nodesGenericIterableHelper) NodesIter() <-chan VertexId {
+	ch := make(chan VertexId)
 	go func() {
 		for node := range helper.iter.Iter() {
-			ch <- node.(NodeId)
+			ch <- node.(VertexId)
 		}
 		close(ch)
 	}()
 	return ch
 }
 
-func CollectNodes(iter NodesIterable) []NodeId {
-	res := make([]NodeId, 10)
+func CollectNodes(iter NodesIterable) []VertexId {
+	res := make([]VertexId, 10)
 	i := 0
 	for node := range iter.NodesIter() {
 		if i==len(res) {
-			tmp := make([]NodeId, 2*i)
+			tmp := make([]VertexId, 2*i)
 			copy(tmp, res)
 			res = tmp
 		}

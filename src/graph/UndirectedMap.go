@@ -5,13 +5,13 @@ import (
 )
 
 type UndirectedMap struct {
-	edges map[NodeId]map[NodeId]bool
+	edges map[VertexId]map[VertexId]bool
 	edgesCnt int
 }
 
 func NewUndirectedMap() *UndirectedMap {
 	g := new(UndirectedMap)
-	g.edges = make(map[NodeId]map[NodeId]bool)
+	g.edges = make(map[VertexId]map[VertexId]bool)
 	g.edgesCnt = 0
 	return g
 }
@@ -26,8 +26,8 @@ func (g *UndirectedMap) ConnectionsIter() <-chan Connection {
 ///////////////////////////////////////////////////////////////////////////////
 // NodesIterable
 
-func (g *UndirectedMap) NodesIter() <-chan NodeId {
-	ch := make(chan NodeId)
+func (g *UndirectedMap) NodesIter() <-chan VertexId {
+	ch := make(chan VertexId)
 	go func() {
 		for from, _ := range g.edges {
 			ch <- from
@@ -40,7 +40,7 @@ func (g *UndirectedMap) NodesIter() <-chan NodeId {
 ///////////////////////////////////////////////////////////////////////////////
 // NodesChecker
 
-func (g *UndirectedMap) CheckNode(node NodeId) (exists bool) {
+func (g *UndirectedMap) CheckNode(node VertexId) (exists bool) {
 	_, exists = g.edges[node]
 	return
 }
@@ -49,7 +49,7 @@ func (g *UndirectedMap) CheckNode(node NodeId) (exists bool) {
 // UndirectedGraphNodesWriter
 
 // Adding single node to graph
-func (g *UndirectedMap) AddNode(node NodeId) {
+func (g *UndirectedMap) AddNode(node VertexId) {
 	makeError := func(err interface{}) (res erx.Error) {
 		res = erx.NewSequentLevel("Add node to graph.", err, 1)
 		res.AddV("node id", node)
@@ -60,7 +60,7 @@ func (g *UndirectedMap) AddNode(node NodeId) {
 		panic(makeError(erx.NewError("Node already exists.")))
 	}
 	
-	g.edges[node] = make(map[NodeId]bool)
+	g.edges[node] = make(map[VertexId]bool)
 
 	return	
 }
@@ -68,7 +68,7 @@ func (g *UndirectedMap) AddNode(node NodeId) {
 ///////////////////////////////////////////////////////////////////////////////
 // GraphNodesRemover
 
-func (g *UndirectedMap) RemoveNode(node NodeId) {
+func (g *UndirectedMap) RemoveNode(node VertexId) {
 	makeError := func(err interface{}) (res erx.Error) {
 		res = erx.NewSequentLevel("Remove node from graph.", err, 1)
 		res.AddV("node id", node)
@@ -90,14 +90,14 @@ func (g *UndirectedMap) RemoveNode(node NodeId) {
 ///////////////////////////////////////////////////////////////////////////////
 // UndirectedGraphEdgesWriter
 
-func (g *UndirectedMap) touchNode(node NodeId) {
+func (g *UndirectedMap) touchNode(node VertexId) {
 	if _, ok := g.edges[node]; !ok {
-		g.edges[node] = make(map[NodeId]bool)
+		g.edges[node] = make(map[VertexId]bool)
 	}
 }
 
 // Adding arrow to graph.
-func (g *UndirectedMap) AddEdge(from, to NodeId) {
+func (g *UndirectedMap) AddEdge(from, to VertexId) {
 	makeError := func(err interface{}) (res erx.Error) {
 		res = erx.NewSequentLevel("Add edge to graph.", err, 1)
 		res.AddV("node 1", from)
@@ -123,7 +123,7 @@ func (g *UndirectedMap) AddEdge(from, to NodeId) {
 // UndirectedGraphEdgesRemover
 
 // Removing arrow  'from' and 'to' nodes
-func (g *UndirectedMap) RemoveEdge(from, to NodeId) {
+func (g *UndirectedMap) RemoveEdge(from, to VertexId) {
 	makeError := func(err interface{}) (res erx.Error) {
 		res = erx.NewSequentLevel("Remove edge from graph.", err, 1)
 		res.AddV("node 1", from)
@@ -158,13 +158,13 @@ func (g *UndirectedMap) EdgesCnt() int {
 }
 
 // Getting node predecessors
-func (g *UndirectedMap) GetNeighbours(node NodeId) NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+func (g *UndirectedMap) GetNeighbours(node VertexId) NodesIterable {
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		go func() {
 			if connectedMap, ok := g.edges[node]; ok {
-				for nodeId, _ := range connectedMap {
-					ch <- nodeId
+				for VertexId, _ := range connectedMap {
+					ch <- VertexId
 				}
 			} else {
 				panic(erx.NewError("Node doesn't exists."))
@@ -177,7 +177,7 @@ func (g *UndirectedMap) GetNeighbours(node NodeId) NodesIterable {
 	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
-func (g *UndirectedMap) CheckEdge(from, to NodeId) (isExist bool) {
+func (g *UndirectedMap) CheckEdge(from, to VertexId) (isExist bool) {
 	makeError := func(err interface{}) (res erx.Error) {
 		res = erx.NewSequentLevel("Check edge existance in graph.", err, 1)
 		res.AddV("node 1", from)

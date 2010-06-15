@@ -1,8 +1,6 @@
 package graph
 
 import (
-	"fmt"
-
 	"testing"
 	"github.com/orfjackal/gospec/src/gospec"
 	. "github.com/orfjackal/gospec/src/gospec"
@@ -61,7 +59,7 @@ func CheckDirectedPathSpec(c gospec.Context, checkPathFunction CheckDirectedPath
 	})
 	
 	c.Specify("Check weight limit", func() {
-		c.Expect(checkPathFunction(gr, 1, 5, func(node NodeId, weight float64) bool {
+		c.Expect(checkPathFunction(gr, 1, 5, func(node VertexId, weight float64) bool {
 			return weight < 2.0
 		}, SimpleWeightFunc), IsFalse)
 	})
@@ -103,7 +101,7 @@ func CheckMixedPathSpec(c gospec.Context, checkPathFunction CheckMixedPath) {
 	})
 	
 	c.Specify("Check weight limit", func() {
-		c.Expect(checkPathFunction(gr, 1, 5, func(node NodeId, weight float64) bool {
+		c.Expect(checkPathFunction(gr, 1, 5, func(node VertexId, weight float64) bool {
 			return weight < 2.0
 		}, SimpleWeightFunc), IsFalse)
 	})
@@ -131,7 +129,7 @@ func GetAllMixedPathsSpec(c gospec.Context) {
 func BellmanFordSingleSourceSpec(c gospec.Context) {
 	gr := generateDirectedGraph1()
 	
-	marks := BellmanFordSingleSource(gr, NodeId(2), SimpleWeightFunc)
+	marks := BellmanFordSingleSource(gr, VertexId(2), SimpleWeightFunc)
 	c.Expect(len(marks), Equals, gr.NodesCnt())
 }
 

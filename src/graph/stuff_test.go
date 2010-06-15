@@ -16,7 +16,7 @@ func NodesPriorityQueueSpec(c gospec.Context) {
 		})
 		
 		c.Specify("after add", func() {
-			node := NodeId(1)
+			node := VertexId(1)
 			priority := float64(0.5)
 			q.Add(node, priority)
 			
@@ -46,13 +46,13 @@ func NodesPriorityQueueSpec(c gospec.Context) {
 	})
 	
 	c.Specify("Several items with priorities", func() {
-		n1 := NodeId(1)
+		n1 := VertexId(1)
 		p1 := float64(1.0)
-		n2 := NodeId(2)
+		n2 := VertexId(2)
 		p2 := float64(2.0)
-		n3 := NodeId(3)
+		n3 := VertexId(3)
 		p3 := float64(0.5)
-		n4 := NodeId(4)
+		n4 := VertexId(4)
 		p4 := float64(1.5)
 		
 		q.Add(n1, p1)
@@ -76,13 +76,13 @@ func NodesPriorityQueueSpec(c gospec.Context) {
 	})
 	
 	c.Specify("Manipulating items priority", func() {
-		n1 := NodeId(1)
+		n1 := VertexId(1)
 		p1 := float64(1.0)
-		n2 := NodeId(2)
+		n2 := VertexId(2)
 		p2 := float64(2.0)
-		n3 := NodeId(3)
+		n3 := VertexId(3)
 		p3 := float64(0.5)
-		n4 := NodeId(4)
+		n4 := VertexId(4)
 		p4 := float64(1.5)
 		
 		q.Add(n1, p1)
@@ -129,17 +129,17 @@ func NodesPriorityQueueSpec(c gospec.Context) {
 	})
 	
 	c.Specify("Push more items than initial size", func() {
-		n1 := NodeId(1)
+		n1 := VertexId(1)
 		p1 := float64(1.0)
-		n2 := NodeId(2)
+		n2 := VertexId(2)
 		p2 := float64(2.0)
-		n3 := NodeId(3)
+		n3 := VertexId(3)
 		p3 := float64(0.5)
-		n4 := NodeId(4)
+		n4 := VertexId(4)
 		p4 := float64(1.5)
-		n5 := NodeId(6)
+		n5 := VertexId(6)
 		p5 := float64(1.6)
-		n6 := NodeId(7)
+		n6 := VertexId(7)
 		p6 := float64(1.7)
 		
 		
@@ -175,10 +175,10 @@ func NodesPriorityQueueSpec(c gospec.Context) {
 func MatrixIndexerSpec(c gospec.Context) {
 	size := 100
 	usedIds := make(map[int]bool)
-	nodesIds := make(map[NodeId]int)
+	nodesIds := make(map[VertexId]int)
 	for i:=0; i<size; i++ {
 		for j:=0; j<i; j++ {
-			connId := matrixConnectionsIndexer(NodeId(i), NodeId(j), nodesIds, size, true)
+			connId := matrixConnectionsIndexer(VertexId(i), VertexId(j), nodesIds, size, true)
 			_, ok := usedIds[connId]
 			c.Expect(ok, IsFalse)
 			usedIds[connId] = true

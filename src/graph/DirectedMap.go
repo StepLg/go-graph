@@ -5,15 +5,15 @@ import (
 )
 
 type DirectedMap struct {
-	directArcs map[NodeId]map[NodeId]bool
-	reversedArcs map[NodeId]map[NodeId]bool
+	directArcs map[VertexId]map[VertexId]bool
+	reversedArcs map[VertexId]map[VertexId]bool
 	arcsCnt int
 }
 
 func NewDirectedMap() *DirectedMap {
 	g := new(DirectedMap)
-	g.directArcs = make(map[NodeId]map[NodeId]bool)
-	g.reversedArcs = make(map[NodeId]map[NodeId]bool)
+	g.directArcs = make(map[VertexId]map[VertexId]bool)
+	g.reversedArcs = make(map[VertexId]map[VertexId]bool)
 	g.arcsCnt = 0
 	return g
 }
@@ -28,8 +28,8 @@ func (g *DirectedMap) ConnectionsIter() <-chan Connection {
 ///////////////////////////////////////////////////////////////////////////////
 // NodesIterable
 
-func (g *DirectedMap) NodesIter() <-chan NodeId {
-	ch := make(chan NodeId)
+func (g *DirectedMap) NodesIter() <-chan VertexId {
+	ch := make(chan VertexId)
 	go func() {
 		for from, _ := range g.directArcs {
 			ch <- from
@@ -49,7 +49,7 @@ func (g *DirectedMap) NodesIter() <-chan NodeId {
 ///////////////////////////////////////////////////////////////////////////////
 // NodesChecker
 
-func (g *DirectedMap) CheckNode(node NodeId) (exists bool) {
+func (g *DirectedMap) CheckNode(node VertexId) (exists bool) {
 	_, exists = g.directArcs[node]
 	return
 }
@@ -58,7 +58,7 @@ func (g *DirectedMap) CheckNode(node NodeId) (exists bool) {
 // GraphNodesWriter
 
 // Adding single node to graph
-func (g *DirectedMap) AddNode(node NodeId) {
+func (g *DirectedMap) AddNode(node VertexId) {
 	makeError := func(err interface{}) (res erx.Error) {
 		res = erx.NewSequentLevel("Add node to graph.", err, 1)
 		res.AddV("node id", node)
@@ -69,8 +69,8 @@ func (g *DirectedMap) AddNode(node NodeId) {
 		panic(makeError(erx.NewError("Node already exists.")))
 	}
 	
-	g.directArcs[node] = make(map[NodeId]bool)
-	g.reversedArcs[node] = make(map[NodeId]bool)
+	g.directArcs[node] = make(map[VertexId]bool)
+	g.reversedArcs[node] = make(map[VertexId]bool)
 
 	return	
 }
@@ -78,7 +78,7 @@ func (g *DirectedMap) AddNode(node NodeId) {
 ///////////////////////////////////////////////////////////////////////////////
 // GraphNodesRemover
 
-func (g *DirectedMap) RemoveNode(node NodeId) {
+func (g *DirectedMap) RemoveNode(node VertexId) {
 	makeError := func(err interface{}) (res erx.Error) {
 		res = erx.NewSequentLevel("Remove node from graph.", err, 1)
 		res.AddV("node id", node)
@@ -105,15 +105,15 @@ func (g *DirectedMap) RemoveNode(node NodeId) {
 ///////////////////////////////////////////////////////////////////////////////
 // DirectedGraphArcsWriter
 
-func (g *DirectedMap) touchNode(node NodeId) {
+func (g *DirectedMap) touchNode(node VertexId) {
 	if _, ok := g.directArcs[node]; !ok {
-		g.directArcs[node] = make(map[NodeId]bool)
-		g.reversedArcs[node] = make(map[NodeId]bool)
+		g.directArcs[node] = make(map[VertexId]bool)
+		g.reversedArcs[node] = make(map[VertexId]bool)
 	}
 }
 
 // Adding arrow to graph.
-func (g *DirectedMap) AddArc(from, to NodeId) {
+func (g *DirectedMap) AddArc(from, to VertexId) {
 	makeError := func(err interface{}) (res erx.Error) {
 		res = erx.NewSequentLevel("Add arc to graph.", err, 1)
 		res.AddV("tail", from)
@@ -138,7 +138,7 @@ func (g *DirectedMap) AddArc(from, to NodeId) {
 // DirectedGraphArcsRemover
 
 // Removing arrow  'from' and 'to' nodes
-func (g *DirectedMap) RemoveArc(from, to NodeId) {
+func (g *DirectedMap) RemoveArc(from, to VertexId) {
 	makeError := func(err interface{}) (res erx.Error) {
 		res = erx.NewSequentLevel("Remove arc from graph.", err, 1)
 		res.AddV("tail", from)
@@ -175,12 +175,12 @@ func (g *DirectedMap) ArcsCnt() int {
 
 // Getting all graph sources.
 func (g *DirectedMap) GetSources() NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		go func() {
-			for nodeId, predecessors := range g.reversedArcs {
+			for VertexId, predecessors := range g.reversedArcs {
 				if len(predecessors)==0 {
-					ch <- nodeId
+					ch <- VertexId
 				}
 			}
 			close(ch)
@@ -193,12 +193,12 @@ func (g *DirectedMap) GetSources() NodesIterable {
 
 // Getting all graph sinks.
 func (g *DirectedMap) GetSinks() NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		go func() {
-			for nodeId, accessors := range g.directArcs {
+			for VertexId, accessors := range g.directArcs {
 				if len(accessors)==0 {
-					ch <- nodeId
+					ch <- VertexId
 				}
 			}
 			close(ch)
@@ -210,9 +210,9 @@ func (g *DirectedMap) GetSinks() NodesIterable {
 }
 
 // Getting node accessors
-func (g *DirectedMap) GetAccessors(node NodeId) NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+func (g *DirectedMap) GetAccessors(node VertexId) NodesIterable {
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		
 		go func() {
 			defer func() {
@@ -227,8 +227,8 @@ func (g *DirectedMap) GetAccessors(node NodeId) NodesIterable {
 				panic(erx.NewError("Node doesn't exists."))
 			}
 			
-			for nodeId, _ := range accessorsMap {
-				ch <- nodeId
+			for VertexId, _ := range accessorsMap {
+				ch <- VertexId
 			}
 			close(ch)
 		}()
@@ -240,9 +240,9 @@ func (g *DirectedMap) GetAccessors(node NodeId) NodesIterable {
 }
 
 // Getting node predecessors
-func (g *DirectedMap) GetPredecessors(node NodeId) NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+func (g *DirectedMap) GetPredecessors(node VertexId) NodesIterable {
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		
 		go func() {
 			defer func() {
@@ -257,8 +257,8 @@ func (g *DirectedMap) GetPredecessors(node NodeId) NodesIterable {
 				panic(erx.NewError("Node doesn't exists."))
 			}
 			
-			for nodeId, _ := range accessorsMap {
-				ch <- nodeId
+			for VertexId, _ := range accessorsMap {
+				ch <- VertexId
 			}
 			close(ch)
 		}()
@@ -269,7 +269,7 @@ func (g *DirectedMap) GetPredecessors(node NodeId) NodesIterable {
 	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
-func (g *DirectedMap) CheckArc(from, to NodeId) (isExist bool) {
+func (g *DirectedMap) CheckArc(from, to VertexId) (isExist bool) {
 	makeError := func(err interface{}) (res erx.Error) {
 		res = erx.NewSequentLevel("Checking arc existance in graph.", err, 1)
 		res.AddV("tail", from)

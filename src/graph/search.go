@@ -8,23 +8,23 @@ import (
 )
 
 
-type ConnectionWeightFunc func(head, tail NodeId) float64
+type ConnectionWeightFunc func(head, tail VertexId) float64
 
-type StopFunc func(node NodeId, sumWeight float64) bool
+type StopFunc func(node VertexId, sumWeight float64) bool
 
-func SimpleWeightFunc(head, tail NodeId) float64 {
+func SimpleWeightFunc(head, tail VertexId) float64 {
 	return float64(1.0)
 }
 
 type AllNeighboursExtractor interface {
-	GetAllNeighbours(node NodeId) NodesIterable
+	GetAllNeighbours(node VertexId) NodesIterable
 }
 
 type allDirectedNeighboursExtractor struct {
 	dgraph DirectedGraphArcsReader
 }
 
-func (e *allDirectedNeighboursExtractor) GetAllNeighbours(node NodeId) NodesIterable {
+func (e *allDirectedNeighboursExtractor) GetAllNeighbours(node VertexId) NodesIterable {
 	return e.dgraph.GetAccessors(node)
 }
 
@@ -36,7 +36,7 @@ type allUndirectedNeighboursExtractor struct {
 	ugraph UndirectedGraphEdgesReader
 }
 
-func (e *allUndirectedNeighboursExtractor) GetAllNeighbours(node NodeId) NodesIterable {
+func (e *allUndirectedNeighboursExtractor) GetAllNeighbours(node VertexId) NodesIterable {
 	return e.ugraph.GetNeighbours(node)
 }
 
@@ -48,7 +48,7 @@ type allMixedNeighboursExtractor struct {
 	mgraph MixedGraphConnectionsReader
 }
 
-func (e *allMixedNeighboursExtractor) GetAllNeighbours(node NodeId) NodesIterable {
+func (e *allMixedNeighboursExtractor) GetAllNeighbours(node VertexId) NodesIterable {
 	return GenericToNodesIter(Chain(&[...]Iterable{
 		NodesToGenericIter(e.mgraph.GetAccessors(node)), 
 		NodesToGenericIter(e.mgraph.GetNeighbours(node)),
@@ -69,7 +69,7 @@ func NewMixedNeighboursExtractor(gr MixedGraphConnectionsReader) AllNeighboursEx
 // weightFunction calculates total path weight
 // 
 // As a result CheckPathDijkstra returns total weight of path, if it exists.
-func CheckPathDijkstra(neighboursExtractor AllNeighboursExtractor, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) (float64, bool) {
+func CheckPathDijkstra(neighboursExtractor AllNeighboursExtractor, from, to VertexId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) (float64, bool) {
 	defer func() {
 		if e:=recover(); e!=nil {
 			err := erx.NewSequent("Check path graph with Dijkstra algorithm", e)
@@ -112,23 +112,23 @@ func CheckPathDijkstra(neighboursExtractor AllNeighboursExtractor, from, to Node
 	return -1.0, false
 }
 
-type CheckDirectedPath func(gr DirectedGraphArcsReader, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool
+type CheckDirectedPath func(gr DirectedGraphArcsReader, from, to VertexId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool
 
-func CheckDirectedPathDijkstra(gr DirectedGraphArcsReader, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool {
+func CheckDirectedPathDijkstra(gr DirectedGraphArcsReader, from, to VertexId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool {
 	_, pathExists := CheckPathDijkstra(NewDirectedNeighboursExtractor(gr), from, to, stopFunc, weightFunction)
 	return pathExists
 }
 
-type CheckUndirectedPath func(gr UndirectedGraphEdgesReader, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool
+type CheckUndirectedPath func(gr UndirectedGraphEdgesReader, from, to VertexId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool
 
-func CheckUndirectedPathDijkstra(gr UndirectedGraphEdgesReader, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool {
+func CheckUndirectedPathDijkstra(gr UndirectedGraphEdgesReader, from, to VertexId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool {
 	_, pathExists := CheckPathDijkstra(NewUndirectedNeighboursExtractor(gr), from, to, stopFunc, weightFunction)
 	return pathExists
 }
 
-type CheckMixedPath func(gr MixedGraphConnectionsReader, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool
+type CheckMixedPath func(gr MixedGraphConnectionsReader, from, to VertexId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool
 
-func CheckMixedPathDijkstra(gr MixedGraphConnectionsReader, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool {
+func CheckMixedPathDijkstra(gr MixedGraphConnectionsReader, from, to VertexId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool {
 	_, pathExists := CheckPathDijkstra(NewMixedNeighboursExtractor(gr), from, to, stopFunc, weightFunction)
 	return pathExists
 }
@@ -136,21 +136,21 @@ func CheckMixedPathDijkstra(gr MixedGraphConnectionsReader, from, to NodeId, sto
 // Get all paths from one node to another
 //
 // This algorithms doesn't take any loops into paths.
-func GetAllPaths(neighboursExtractor AllNeighboursExtractor, from, to NodeId) <-chan []NodeId {
-	curPath := make([]NodeId, 10)
-	nodesStatus := make(map[NodeId]bool)
-	ch := make(chan []NodeId)
+func GetAllPaths(neighboursExtractor AllNeighboursExtractor, from, to VertexId) <-chan []VertexId {
+	curPath := make([]VertexId, 10)
+	nodesStatus := make(map[VertexId]bool)
+	ch := make(chan []VertexId)
 	go getAllPaths_helper(neighboursExtractor, from, to, curPath, 0, nodesStatus, ch, true)
 	return ch
 }
 
-func getAllPaths_helper(neighboursExtractor AllNeighboursExtractor, from, to NodeId, curPath []NodeId, pathPos int, nodesStatus map[NodeId]bool, ch chan []NodeId, closeChannel bool) {
+func getAllPaths_helper(neighboursExtractor AllNeighboursExtractor, from, to VertexId, curPath []VertexId, pathPos int, nodesStatus map[VertexId]bool, ch chan []VertexId, closeChannel bool) {
 	if _, ok := nodesStatus[from]; ok {
 		return
 	}
 	if pathPos==len(curPath) {
 		// reallocate curPath slice to add new elements
-		tmp := make([]NodeId, 2*pathPos)
+		tmp := make([]VertexId, 2*pathPos)
 		copy(tmp, curPath)
 		curPath = tmp
 	}
@@ -159,7 +159,7 @@ func getAllPaths_helper(neighboursExtractor AllNeighboursExtractor, from, to Nod
 
 	if from==to { 
 		if pathPos>0 {
-			pathCopy := make([]NodeId, pathPos+1)
+			pathCopy := make([]VertexId, pathPos+1)
 			copy(pathCopy, curPath[0:pathPos+1])
 			ch <- pathCopy
 		}
@@ -179,15 +179,15 @@ func getAllPaths_helper(neighboursExtractor AllNeighboursExtractor, from, to Nod
 	return
 }
 
-func GetAllDirectedPaths(gr DirectedGraphArcsReader, from, to NodeId) <-chan []NodeId {
+func GetAllDirectedPaths(gr DirectedGraphArcsReader, from, to VertexId) <-chan []VertexId {
 	return GetAllPaths(NewDirectedNeighboursExtractor(gr), from, to)
 }
 
-func GetAllUndirectedPaths(gr UndirectedGraphEdgesReader, from, to NodeId) <-chan []NodeId {
+func GetAllUndirectedPaths(gr UndirectedGraphEdgesReader, from, to VertexId) <-chan []VertexId {
 	return GetAllPaths(NewUndirectedNeighboursExtractor(gr), from, to)
 }
 
-func GetAllMixedPaths(gr MixedGraphConnectionsReader, from, to NodeId) <-chan []NodeId {
+func GetAllMixedPaths(gr MixedGraphConnectionsReader, from, to VertexId) <-chan []VertexId {
 	return GetAllPaths(NewMixedNeighboursExtractor(gr), from, to)
 }
 
@@ -197,8 +197,8 @@ func GetAllMixedPaths(gr MixedGraphConnectionsReader, from, to NodeId) <-chan []
 // then value for this node is math.MaxFloat64
 //
 // Returns nil if there are negative cycles. 
-func BellmanFordSingleSource(gr DirectedGraphReader, source NodeId, weight ConnectionWeightFunc) map[NodeId]float64 {
-	marks := make(map[NodeId]float64)
+func BellmanFordSingleSource(gr DirectedGraphReader, source VertexId, weight ConnectionWeightFunc) map[VertexId]float64 {
+	marks := make(map[VertexId]float64)
 	for node := range gr.NodesIter() {
 		marks[node] = math.MaxFloat64
 	}

@@ -17,8 +17,8 @@ func DirectedGraphArcsFilterSpec(c gospec.Context) {
 	gr.AddArc(2, 6)
 
 	c.Specify("Single filtered arc", func() {
-		ftail := NodeId(2)
-		fhead := NodeId(3)
+		ftail := VertexId(2)
+		fhead := VertexId(3)
 		f := NewDirectedGraphArcFilter(gr, ftail, fhead)
 		
 		c.Specify("shouldn't be checked", func() {
@@ -26,10 +26,10 @@ func DirectedGraphArcsFilterSpec(c gospec.Context) {
 		})
 		
 		c.Specify("shouldn't appear in accessors", func() {
-			c.Expect(CollectNodes(f.GetAccessors(NodeId(ftail))), Not(Contains), fhead)
+			c.Expect(CollectNodes(f.GetAccessors(VertexId(ftail))), Not(Contains), fhead)
 		})
 		c.Specify("shouldn't appear in predecessors", func() {
-			c.Expect(CollectNodes(f.GetPredecessors(NodeId(fhead))), Not(Contains), ftail)
+			c.Expect(CollectNodes(f.GetPredecessors(VertexId(fhead))), Not(Contains), ftail)
 		})
 		c.Specify("shouldn't appear in iterator", func() {
 			for conn := range f.ArcsIter() {
@@ -50,8 +50,8 @@ func UndirectedGraphEdgesFilterSpec(c gospec.Context) {
 	gr.AddEdge(2, 6)
 
 	c.Specify("Single filtered arc", func() {
-		ftail := NodeId(3)
-		fhead := NodeId(2)
+		ftail := VertexId(3)
+		fhead := VertexId(2)
 		f := NewUndirectedGraphEdgeFilter(gr, ftail, fhead)
 		
 		c.Specify("should be filtered", func() {
@@ -65,8 +65,8 @@ func UndirectedGraphEdgesFilterSpec(c gospec.Context) {
 		})
 		
 		c.Specify("shouldn't appear in neighbours", func() {
-			c.Expect(CollectNodes(f.GetNeighbours(NodeId(ftail))), Not(Contains), fhead)
-			c.Expect(CollectNodes(f.GetNeighbours(NodeId(fhead))), Not(Contains), ftail)
+			c.Expect(CollectNodes(f.GetNeighbours(VertexId(ftail))), Not(Contains), fhead)
+			c.Expect(CollectNodes(f.GetNeighbours(VertexId(fhead))), Not(Contains), ftail)
 		})
 		c.Specify("shouldn't appear in iterator", func() {
 			for conn := range f.EdgesIter() {
@@ -88,8 +88,8 @@ func MixedGraphConnectionsFilterSpec(c gospec.Context) {
 	gr.AddArc(2, 6)
 
 	c.Specify("Single filtered arc", func() {
-		ftail := NodeId(2)
-		fhead := NodeId(3)
+		ftail := VertexId(2)
+		fhead := VertexId(3)
 		f := NewDirectedGraphArcFilter(gr, ftail, fhead)
 		
 		c.Specify("shouldn't be checked", func() {
@@ -97,10 +97,10 @@ func MixedGraphConnectionsFilterSpec(c gospec.Context) {
 		})
 		
 		c.Specify("shouldn't appear in accessors", func() {
-			c.Expect(CollectNodes(f.GetAccessors(NodeId(ftail))), Not(Contains), fhead)
+			c.Expect(CollectNodes(f.GetAccessors(VertexId(ftail))), Not(Contains), fhead)
 		})
 		c.Specify("shouldn't appear in predecessors", func() {
-			c.Expect(CollectNodes(f.GetPredecessors(NodeId(fhead))), Not(Contains), ftail)
+			c.Expect(CollectNodes(f.GetPredecessors(VertexId(fhead))), Not(Contains), ftail)
 		})
 		c.Specify("shouldn't appear in iterator", func() {
 			for conn := range f.ArcsIter() {

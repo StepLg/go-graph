@@ -7,7 +7,7 @@ import (
 type UndirectedMatrix struct {
 	nodes []bool
 	size int
-	nodeIds map[NodeId]int // internal node ids, used in nodes array
+	VertexIds map[VertexId]int // internal node ids, used in nodes array
 	edgesCnt int
 }
 
@@ -22,7 +22,7 @@ func NewUndirectedMatrix(size int) *UndirectedMatrix {
 	g := new(UndirectedMatrix)
 	g.nodes = make([]bool, size*(size-1)/2)
 	g.size = size
-	g.nodeIds = make(map[NodeId]int)
+	g.VertexIds = make(map[VertexId]int)
 	g.edgesCnt = 0
 	return g
 }
@@ -44,11 +44,11 @@ func (g *UndirectedMatrix) ConnectionsIter() <-chan Connection {
 ///////////////////////////////////////////////////////////////////////////////
 // NodesIterable
 
-func (g *UndirectedMatrix) NodesIter() <-chan NodeId {
-	ch := make(chan NodeId)
+func (g *UndirectedMatrix) NodesIter() <-chan VertexId {
+	ch := make(chan VertexId)
 	go func() {
-		for nodeId, _ := range g.nodeIds {
-			ch <- nodeId
+		for VertexId, _ := range g.VertexIds {
+			ch <- VertexId
 		}
 		close(ch)
 	}()
@@ -58,8 +58,8 @@ func (g *UndirectedMatrix) NodesIter() <-chan NodeId {
 ///////////////////////////////////////////////////////////////////////////////
 // NodesChecker
 
-func (g *UndirectedMatrix) CheckNode(node NodeId) (exists bool) {
-	_, exists = g.nodeIds[node]
+func (g *UndirectedMatrix) CheckNode(node VertexId) (exists bool) {
+	_, exists = g.VertexIds[node]
 	return
 }
 
@@ -67,18 +67,18 @@ func (g *UndirectedMatrix) CheckNode(node NodeId) (exists bool) {
 // UndirectedGraphNodesWriter
 
 // Adding single node to graph
-func (g *UndirectedMatrix) AddNode(node NodeId) {
+func (g *UndirectedMatrix) AddNode(node VertexId) {
 	makeError := func(err interface{}) (res erx.Error) {
 		res = erx.NewSequentLevel("Add node to graph.", err, 1)
 		res.AddV("node id", node)
 		return
 	}
 
-	if _, ok := g.nodeIds[node]; ok {
+	if _, ok := g.VertexIds[node]; ok {
 		panic(makeError(erx.NewError("Node already exists.")))
 	}
 	
-	g.nodeIds[node] = len(g.nodeIds)
+	g.VertexIds[node] = len(g.VertexIds)
 
 	return	
 }
@@ -86,7 +86,7 @@ func (g *UndirectedMatrix) AddNode(node NodeId) {
 ///////////////////////////////////////////////////////////////////////////////
 // GraphNodesRemover
 
-func (g *UndirectedMatrix) RemoveNode(node NodeId) {
+func (g *UndirectedMatrix) RemoveNode(node VertexId) {
 	panic(erx.NewError("Function doesn't implemented yet."))
 }
 
@@ -94,7 +94,7 @@ func (g *UndirectedMatrix) RemoveNode(node NodeId) {
 // UndirectedGraphEdgesWriter
 
 // Adding new edge to graph
-func (g *UndirectedMatrix) AddEdge(node1, node2 NodeId) {
+func (g *UndirectedMatrix) AddEdge(node1, node2 VertexId) {
 	makeError := func(err interface{}) (res erx.Error) {
 		res = erx.NewSequentLevel("Add edge to graph.", err, 1)
 		res.AddV("node 1", node1)
@@ -129,7 +129,7 @@ func (g *UndirectedMatrix) AddEdge(node1, node2 NodeId) {
 // UndirectedGraphEdgesRemover
 
 // Removing edge, connecting node1 and node2
-func (g *UndirectedMatrix) RemoveEdge(node1, node2 NodeId) {
+func (g *UndirectedMatrix) RemoveEdge(node1, node2 VertexId) {
 	makeError := func(err interface{}) (res erx.Error) {
 		res = erx.NewSequentLevel("Remove edge from graph.", err, 1)
 		res.AddV("node 1", node1)
@@ -164,7 +164,7 @@ func (g *UndirectedMatrix) RemoveEdge(node1, node2 NodeId) {
 
 // Current nodes count in graph
 func (g *UndirectedMatrix) NodesCnt() int {
-	return int(len(g.nodeIds))
+	return int(len(g.VertexIds))
 }
 
 // Current nodes count in graph
@@ -174,17 +174,17 @@ func (g *UndirectedMatrix) EdgesCnt() int {
 
 
 // Getting all nodes, connected to given one
-func (g *UndirectedMatrix) GetNeighbours(node NodeId) NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+func (g *UndirectedMatrix) GetNeighbours(node VertexId) NodesIterable {
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		go func() {
 
-			if _, ok := g.nodeIds[node]; !ok {
+			if _, ok := g.VertexIds[node]; !ok {
 				panic(erx.NewError("Unknown node."))
 			}
 
 			var connId int
-			for aNode, _ := range g.nodeIds {
+			for aNode, _ := range g.VertexIds {
 				if aNode==node {
 					continue
 				}
@@ -206,8 +206,8 @@ func (g *UndirectedMatrix) GetNeighbours(node NodeId) NodesIterable {
 func (g *UndirectedMatrix) EdgesIter() <-chan Connection {
 	ch := make(chan Connection)
 	go func() {
-		for from, _ := range g.nodeIds {
-			for to, _ := range g.nodeIds {
+		for from, _ := range g.VertexIds {
+			for to, _ := range g.VertexIds {
 				if from<to && g.CheckEdge(from, to) {
 					ch <- Connection{from, to}
 				}
@@ -218,7 +218,7 @@ func (g *UndirectedMatrix) EdgesIter() <-chan Connection {
 	return ch
 }
 
-func (g *UndirectedMatrix) CheckEdge(node1, node2 NodeId) bool {
+func (g *UndirectedMatrix) CheckEdge(node1, node2 VertexId) bool {
 	defer func() {
 		// warning! such code generates wrong file/line info about error!
 		// see http://groups.google.com/group/golang-nuts/browse_thread/thread/66bd57dcdac63aa
@@ -234,7 +234,7 @@ func (g *UndirectedMatrix) CheckEdge(node1, node2 NodeId) bool {
 	return g.nodes[g.getConnectionId(node1, node2, false)]
 }
 
-func (g *UndirectedMatrix) getConnectionId(node1, node2 NodeId, create bool) int {
+func (g *UndirectedMatrix) getConnectionId(node1, node2 VertexId, create bool) int {
 	makeError := func(err interface{}) (res erx.Error) {
 		res = erx.NewSequentLevel("Calculating connection id.", err, 1)
 		res.AddV("node 1", node1)
@@ -254,8 +254,8 @@ func (g *UndirectedMatrix) getConnectionId(node1, node2 NodeId, create bool) int
 	var id1, id2 int
 	node1Exist := false
 	node2Exist := false
-	id1, node1Exist = g.nodeIds[node1]
-	id2, node2Exist = g.nodeIds[node2]
+	id1, node1Exist = g.VertexIds[node1]
+	id2, node2Exist = g.VertexIds[node2]
 	
 	// checking for errors
 	{
@@ -271,11 +271,11 @@ func (g *UndirectedMatrix) getConnectionId(node1, node2 NodeId, create bool) int
 			}
 		} else if !node1Exist || !node2Exist {
 			if node1Exist && node2Exist {
-				if g.size - len(g.nodeIds) < 2 {
+				if g.size - len(g.VertexIds) < 2 {
 					panic(makeError(erx.NewError("Not enough space to create two new nodes.")))
 				}
 			} else {
-				if g.size - len(g.nodeIds) < 1 {
+				if g.size - len(g.VertexIds) < 1 {
 					panic(makeError(erx.NewError("Not enough space to create new node.")))
 				}
 			}
@@ -283,13 +283,13 @@ func (g *UndirectedMatrix) getConnectionId(node1, node2 NodeId, create bool) int
 	}
 	
 	if !node1Exist {
-		id1 = int(len(g.nodeIds))
-		g.nodeIds[node1] = id1
+		id1 = int(len(g.VertexIds))
+		g.VertexIds[node1] = id1
 	}
 
 	if !node2Exist {
-		id2 = int(len(g.nodeIds))
-		g.nodeIds[node2] = id2
+		id2 = int(len(g.VertexIds))
+		g.VertexIds[node2] = id2
 	}
 	
 	// switching id1, id2 in order to id1 < id2

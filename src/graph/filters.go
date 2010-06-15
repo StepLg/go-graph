@@ -24,7 +24,7 @@ func NewDirectedGraphArcsFilter(g DirectedGraphArcsReader, arcs []Connection) *D
 }
 
 // Create arcs filter with single arc
-func NewDirectedGraphArcFilter(g DirectedGraphArcsReader, tail, head NodeId) *DirectedGraphArcsFilter {
+func NewDirectedGraphArcFilter(g DirectedGraphArcsReader, tail, head VertexId) *DirectedGraphArcsFilter {
 	filter := &DirectedGraphArcsFilter{
 		DirectedGraphArcsReader: g,
 		arcs: make([]Connection, 1),
@@ -35,9 +35,9 @@ func NewDirectedGraphArcFilter(g DirectedGraphArcsReader, tail, head NodeId) *Di
 }
 
 // Getting node accessors
-func (filter *DirectedGraphArcsFilter) GetAccessors(node NodeId) NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+func (filter *DirectedGraphArcsFilter) GetAccessors(node VertexId) NodesIterable {
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		go func() {
 			AccessorsLoop: 
 			for accessor := range filter.DirectedGraphArcsReader.GetAccessors(node).NodesIter() {
@@ -54,9 +54,9 @@ func (filter *DirectedGraphArcsFilter) GetAccessors(node NodeId) NodesIterable {
 }
 
 // Getting node predecessors
-func (filter *DirectedGraphArcsFilter) GetPredecessors(node NodeId) NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+func (filter *DirectedGraphArcsFilter) GetPredecessors(node VertexId) NodesIterable {
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		go func() {
 			for predecessor := range filter.DirectedGraphArcsReader.GetPredecessors(node).NodesIter() {
 				if !filter.IsArcFiltering(predecessor, node) {
@@ -74,7 +74,7 @@ func (filter *DirectedGraphArcsFilter) GetPredecessors(node NodeId) NodesIterabl
 // Checking arrow existance between node1 and node2
 //
 // node1 and node2 must exist in graph or error will be returned
-func (filter *DirectedGraphArcsFilter) CheckArc(node1, node2 NodeId) bool {
+func (filter *DirectedGraphArcsFilter) CheckArc(node1, node2 VertexId) bool {
 	res := filter.DirectedGraphArcsReader.CheckArc(node1, node2)
 	if res {
 		for _, filteringConnection := range filter.arcs {
@@ -100,7 +100,7 @@ func (filter *DirectedGraphArcsFilter) ArcsIter() <-chan Connection {
 	return ch
 }
 
-func (filter *DirectedGraphArcsFilter) IsArcFiltering(tail, head NodeId) bool {
+func (filter *DirectedGraphArcsFilter) IsArcFiltering(tail, head VertexId) bool {
 	for _, filteringConnection := range filter.arcs {
 		if filteringConnection.Head==head && filteringConnection.Tail==tail {
 			return true
@@ -138,7 +138,7 @@ func NewUndirectedGraphEdgesFilter(g UndirectedGraphEdgesReader, edges []Connect
 }
 
 // Create arcs filter with single arc
-func NewUndirectedGraphEdgeFilter(g UndirectedGraphEdgesReader, tail, head NodeId) *UndirectedGraphEdgesFilter {
+func NewUndirectedGraphEdgeFilter(g UndirectedGraphEdgesReader, tail, head VertexId) *UndirectedGraphEdgesFilter {
 	filter := &UndirectedGraphEdgesFilter{
 		UndirectedGraphEdgesReader: g,
 		edges: make([]Connection, 1),
@@ -156,9 +156,9 @@ func NewUndirectedGraphEdgeFilter(g UndirectedGraphEdgesReader, tail, head NodeI
 }
 
 // Getting node neighbours
-func (filter *UndirectedGraphEdgesFilter) GetNeighbours(node NodeId) NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+func (filter *UndirectedGraphEdgesFilter) GetNeighbours(node VertexId) NodesIterable {
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		go func() {
 			for neighbour := range filter.UndirectedGraphEdgesReader.GetNeighbours(node).NodesIter() {
 				if !filter.IsEdgeFiltering(node, neighbour) {
@@ -176,7 +176,7 @@ func (filter *UndirectedGraphEdgesFilter) GetNeighbours(node NodeId) NodesIterab
 // Checking edge existance between node1 and node2
 //
 // node1 and node2 must exist in graph or error will be returned
-func (filter *UndirectedGraphEdgesFilter) CheckEdge(node1, node2 NodeId) bool {
+func (filter *UndirectedGraphEdgesFilter) CheckEdge(node1, node2 VertexId) bool {
 	res := filter.UndirectedGraphEdgesReader.CheckEdge(node1, node2)
 	if res {
 		res = !filter.IsEdgeFiltering(node1, node2)
@@ -197,7 +197,7 @@ func (filter *UndirectedGraphEdgesFilter) EdgesIter() <-chan Connection {
 	return ch
 }
 
-func (filter *UndirectedGraphEdgesFilter) IsEdgeFiltering(tail, head NodeId) bool {
+func (filter *UndirectedGraphEdgesFilter) IsEdgeFiltering(tail, head VertexId) bool {
 	if head<tail {
 		tail, head = head, tail
 	}
@@ -263,7 +263,7 @@ func (filter *MixedGraphConnectionsFilter) TypedConnectionsIter() <-chan TypedCo
 	return ch
 }
 
-func (filter *MixedGraphConnectionsFilter) CheckEdgeType(tail NodeId, head NodeId) MixedConnectionType {
+func (filter *MixedGraphConnectionsFilter) CheckEdgeType(tail VertexId, head VertexId) MixedConnectionType {
 	res := filter.gr.CheckEdgeType(tail, head)
 	if res!=CT_NONE {
 		switch res {

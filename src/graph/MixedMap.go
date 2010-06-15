@@ -5,14 +5,14 @@ import (
 )
 
 type MixedMap struct {
-	connections map[NodeId]map[NodeId]MixedConnectionType
+	connections map[VertexId]map[VertexId]MixedConnectionType
 	arcsCnt int
 	edgesCnt int
 }
 
 func NewMixedMap() *MixedMap {
 	g := &MixedMap {
-		connections: make(map[NodeId]map[NodeId]MixedConnectionType),
+		connections: make(map[VertexId]map[VertexId]MixedConnectionType),
 		arcsCnt: 0,
 		edgesCnt: 0,
 	}
@@ -31,8 +31,8 @@ func (g *MixedMap) ConnectionsIter() <-chan Connection {
 ///////////////////////////////////////////////////////////////////////////////
 // NodesIterable
 
-func (g *MixedMap) NodesIter() <-chan NodeId {
-	ch := make(chan NodeId)
+func (g *MixedMap) NodesIter() <-chan VertexId {
+	ch := make(chan VertexId)
 	go func() {
 		for from, _ := range g.connections {
 			ch <- from
@@ -45,7 +45,7 @@ func (g *MixedMap) NodesIter() <-chan NodeId {
 ///////////////////////////////////////////////////////////////////////////////
 // NodesChecker
 
-func (g *MixedMap) CheckNode(node NodeId) (exists bool) {
+func (g *MixedMap) CheckNode(node VertexId) (exists bool) {
 	_, exists = g.connections[node]
 	return
 }
@@ -54,7 +54,7 @@ func (g *MixedMap) CheckNode(node NodeId) (exists bool) {
 // GraphNodesWriter
 
 // Adding single node to graph
-func (g *MixedMap) AddNode(node NodeId) {
+func (g *MixedMap) AddNode(node VertexId) {
 	defer func() {
 		if e:=recover(); e!=nil {
 			err := erx.NewSequent("Add node to graph.", e)
@@ -67,7 +67,7 @@ func (g *MixedMap) AddNode(node NodeId) {
 		panic(erx.NewError("Node already exists."))
 	}
 	
-	g.connections[node] = make(map[NodeId]MixedConnectionType)
+	g.connections[node] = make(map[VertexId]MixedConnectionType)
 
 	return
 }
@@ -75,7 +75,7 @@ func (g *MixedMap) AddNode(node NodeId) {
 ///////////////////////////////////////////////////////////////////////////////
 // GraphNodesRemover
 
-func (g *MixedMap) RemoveNode(node NodeId) {
+func (g *MixedMap) RemoveNode(node VertexId) {
 	defer func() {
 		if e:=recover(); e!=nil {
 			err := erx.NewSequent("Remove node from graph.", e)
@@ -99,14 +99,14 @@ func (g *MixedMap) RemoveNode(node NodeId) {
 ///////////////////////////////////////////////////////////////////////////////
 // DirectedGraphArcsWriter
 
-func (g *MixedMap) touchNode(node NodeId) {
+func (g *MixedMap) touchNode(node VertexId) {
 	if _, ok := g.connections[node]; !ok {
-		g.connections[node] = make(map[NodeId]MixedConnectionType)
+		g.connections[node] = make(map[VertexId]MixedConnectionType)
 	}
 }
 
 // Adding arrow to graph.
-func (g *MixedMap) AddArc(from, to NodeId) {
+func (g *MixedMap) AddArc(from, to VertexId) {
 	defer func() {
 		if e:=recover(); e!=nil {
 			err := erx.NewSequent("Add arc to graph.", e)
@@ -135,7 +135,7 @@ func (g *MixedMap) AddArc(from, to NodeId) {
 // DirectedGraphArcsRemover
 
 // Removing arrow  'from' and 'to' nodes
-func (g *MixedMap) RemoveArc(from, to NodeId) {
+func (g *MixedMap) RemoveArc(from, to VertexId) {
 	defer func() {
 		if e:=recover(); e!=nil {
 			err := erx.NewSequent("Remove arc from graph.", e)
@@ -177,11 +177,11 @@ func (g *MixedMap) ArcsCnt() int {
 
 // Getting all graph sources.
 func (g *MixedMap) GetSources() NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		
 		go func() {
-			for nodeId, connections := range g.connections {
+			for VertexId, connections := range g.connections {
 				isSource := true
 				for _, connType := range connections {
 					if connType==CT_DIRECTED_REVERSED {
@@ -190,7 +190,7 @@ func (g *MixedMap) GetSources() NodesIterable {
 					}
 				}
 				if isSource {
-					ch <- nodeId
+					ch <- VertexId
 				}
 			}
 
@@ -205,11 +205,11 @@ func (g *MixedMap) GetSources() NodesIterable {
 
 // Getting all graph sinks.
 func (g *MixedMap) GetSinks() NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		
 		go func() {
-			for nodeId, connections := range g.connections {
+			for VertexId, connections := range g.connections {
 				isSink := true
 				for _, connType := range connections {
 					if connType==CT_DIRECTED {
@@ -218,7 +218,7 @@ func (g *MixedMap) GetSinks() NodesIterable {
 					}
 				}
 				if isSink {
-					ch <- nodeId
+					ch <- VertexId
 				}
 			}
 
@@ -232,9 +232,9 @@ func (g *MixedMap) GetSinks() NodesIterable {
 }
 
 // Getting node accessors
-func (g *MixedMap) GetAccessors(node NodeId) NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+func (g *MixedMap) GetAccessors(node VertexId) NodesIterable {
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		
 		go func() {
 			defer func() {
@@ -250,9 +250,9 @@ func (g *MixedMap) GetAccessors(node NodeId) NodesIterable {
 				panic(erx.NewError("Node doesn't exists."))
 			}
 			
-			for nodeId, connType := range accessorsMap {
+			for VertexId, connType := range accessorsMap {
 				if connType==CT_DIRECTED {
-					ch <- nodeId
+					ch <- VertexId
 				}
 			}
 			
@@ -266,9 +266,9 @@ func (g *MixedMap) GetAccessors(node NodeId) NodesIterable {
 }
 
 // Getting node predecessors
-func (g *MixedMap) GetPredecessors(node NodeId) NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+func (g *MixedMap) GetPredecessors(node VertexId) NodesIterable {
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		
 		go func() {
 			defer func() {
@@ -284,9 +284,9 @@ func (g *MixedMap) GetPredecessors(node NodeId) NodesIterable {
 				panic(erx.NewError("Node doesn't exists."))
 			}
 			
-			for nodeId, connType := range accessorsMap {
+			for VertexId, connType := range accessorsMap {
 				if connType==CT_DIRECTED_REVERSED {
-					ch <- nodeId
+					ch <- VertexId
 				}
 			}
 	
@@ -299,7 +299,7 @@ func (g *MixedMap) GetPredecessors(node NodeId) NodesIterable {
 	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator}) 
 }
 
-func (g *MixedMap) CheckArc(from, to NodeId) (isExist bool) {
+func (g *MixedMap) CheckArc(from, to VertexId) (isExist bool) {
 	defer func() {
 		if e:=recover(); e!=nil {
 			err := erx.NewSequent("Checking arc existance in graph.", e)
@@ -342,7 +342,7 @@ func (g *MixedMap) ArcsIter() <-chan Connection {
 // UndirectedGraphEdgesWriter
 
 // Adding edge to graph.
-func (g *MixedMap) AddEdge(from, to NodeId) {
+func (g *MixedMap) AddEdge(from, to VertexId) {
 	defer func() {
 		if e:=recover(); e!=nil {
 			err := erx.NewSequent("Add edge to graph.", e)
@@ -372,7 +372,7 @@ func (g *MixedMap) AddEdge(from, to NodeId) {
 // UndirectedGraphEdgesRemover
 
 // Removing arrow  'from' and 'to' nodes
-func (g *MixedMap) RemoveEdge(from, to NodeId) {
+func (g *MixedMap) RemoveEdge(from, to VertexId) {
 	defer func() {
 		if e:=recover(); e!=nil {
 			err := erx.NewSequent("Removing edge from graph.", e)
@@ -405,9 +405,9 @@ func (g *MixedMap) EdgesCnt() int {
 }
 
 // Getting node predecessors
-func (g *MixedMap) GetNeighbours(node NodeId) NodesIterable {
-	iterator := func() <-chan NodeId {
-		ch := make(chan NodeId)
+func (g *MixedMap) GetNeighbours(node VertexId) NodesIterable {
+	iterator := func() <-chan VertexId {
+		ch := make(chan VertexId)
 		
 		go func() {
 			defer func() {
@@ -419,9 +419,9 @@ func (g *MixedMap) GetNeighbours(node NodeId) NodesIterable {
 			}()
 			
 			if connectedMap, ok := g.connections[node]; ok {
-				for nodeId, connType := range connectedMap {
+				for VertexId, connType := range connectedMap {
 					if connType==CT_UNDIRECTED {
-						ch <- nodeId
+						ch <- VertexId
 					}
 				}
 			} else {
@@ -437,7 +437,7 @@ func (g *MixedMap) GetNeighbours(node NodeId) NodesIterable {
 	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator}) 
 }
 
-func (g *MixedMap) CheckEdge(from, to NodeId) bool {
+func (g *MixedMap) CheckEdge(from, to VertexId) bool {
 	defer func() {
 		if e:=recover(); e!=nil {
 			err := erx.NewSequent("Check edge existance in graph.", e)
@@ -481,7 +481,7 @@ func (g *MixedMap) EdgesIter() <-chan Connection {
 ///////////////////////////////////////////////////////////////////////////////
 // MixedGraphSpecificReader
 
-func (g *MixedMap) CheckEdgeType(tail NodeId, head NodeId) MixedConnectionType {
+func (g *MixedMap) CheckEdgeType(tail VertexId, head VertexId) MixedConnectionType {
 	defer func() {
 		if e := recover(); e!=nil {
 			err := erx.NewSequent("Check edge type in mixed graph.", e)

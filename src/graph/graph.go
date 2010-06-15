@@ -1,12 +1,12 @@
 package graph
 
-type NodeId uint
+type VertexId uint
 
-type Nodes []NodeId
+type Nodes []VertexId
 
 type Connection struct {
-	Tail NodeId
-	Head NodeId
+	Tail VertexId
+	Head VertexId
 }
 
 type TypedConnection struct {
@@ -31,17 +31,17 @@ type TypedConnectionsIterable interface {
 }
 
 type NodesIterable interface {
-	NodesIter() <-chan NodeId
+	NodesIter() <-chan VertexId
 }
 
 type NodesChecker interface {
 	// Check node existance in graph
-	CheckNode(node NodeId) bool
+	CheckNode(node VertexId) bool
 }
 
 type GraphNodesWriter interface {
 	// Adding single node to graph
-	AddNode(node NodeId)
+	AddNode(node VertexId)
 }
 
 type GraphNodesReader interface {
@@ -52,17 +52,17 @@ type GraphNodesReader interface {
 
 type GraphNodesRemover interface {
 	// Removing node from graph
-	RemoveNode(node NodeId)
+	RemoveNode(node VertexId)
 }
 
 type DirectedGraphArcsWriter interface {
 	// Adding directed arc to graph
-	AddArc(from, to NodeId)
+	AddArc(from, to VertexId)
 }
 
 type DirectedGraphArcsRemover interface {
 	// Removding directed arc
-	RemoveArc(from, to NodeId)
+	RemoveArc(from, to VertexId)
 }
 
 type DirectedGraphArcsReader interface {
@@ -78,15 +78,15 @@ type DirectedGraphArcsReader interface {
 	GetSinks() NodesIterable
 	
 	// Getting node accessors
-	GetAccessors(node NodeId) NodesIterable
+	GetAccessors(node VertexId) NodesIterable
 	
 	// Getting node predecessors
-	GetPredecessors(node NodeId) NodesIterable
+	GetPredecessors(node VertexId) NodesIterable
 	
 	// Checking arrow existance between node1 and node2
 	//
 	// node1 and node2 must exist in graph or error will be returned
-	CheckArc(node1, node2 NodeId) bool
+	CheckArc(node1, node2 VertexId) bool
 }
 
 type DirectedGraphReader interface {
@@ -117,20 +117,20 @@ type UndirectedGraphEdgesReader interface {
 	// Checking edge existance between node1 and node2
 	//
 	// node1 and node2 must exist in graph or error will be returned
-	CheckEdge(node1, node2 NodeId) bool
+	CheckEdge(node1, node2 VertexId) bool
 
 	// Getting all nodes, connected to given one
-	GetNeighbours(node NodeId) NodesIterable
+	GetNeighbours(node VertexId) NodesIterable
 }
 
 type UndirectedGraphEdgesWriter interface {
 	// Adding new edge to graph
-	AddEdge(node1, node2 NodeId)	
+	AddEdge(node1, node2 VertexId)	
 }
 
 type UndirectedGraphEdgesRemover interface {
 	// Removing edge, connecting node1 and node2
-	RemoveEdge(node1, node2 NodeId)
+	RemoveEdge(node1, node2 VertexId)
 }
 
 type UndirectedGraphReader interface {
@@ -155,7 +155,7 @@ type UndirectedGraph interface {
 }
 
 type MixedGraphSpecificReader interface {
-	CheckEdgeType(tail, head NodeId) MixedConnectionType
+	CheckEdgeType(tail, head VertexId) MixedConnectionType
 	TypedConnectionsIterable
 }
 
