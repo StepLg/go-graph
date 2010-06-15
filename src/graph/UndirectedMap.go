@@ -149,7 +149,7 @@ func (g *UndirectedMap) RemoveEdge(from, to VertexId) {
 ///////////////////////////////////////////////////////////////////////////////
 // UndirectedGraphReader
 
-func (g *UndirectedMap) VertexesCnt() int {
+func (g *UndirectedMap) Order() int {
 	return len(g.edges)
 }
 

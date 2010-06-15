@@ -165,7 +165,7 @@ func (g *DirectedMap) RemoveArc(from, to VertexId) {
 ///////////////////////////////////////////////////////////////////////////////
 // DirectedGraphReader
 
-func (g *DirectedMap) VertexesCnt() int {
+func (g *DirectedMap) Order() int {
 	return len(g.directArcs)
 }
 

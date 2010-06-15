@@ -167,7 +167,7 @@ func (g *MixedMap) RemoveArc(from, to VertexId) {
 ///////////////////////////////////////////////////////////////////////////////
 // DirectedGraphReader
 
-func (g *MixedMap) VertexesCnt() int {
+func (g *MixedMap) Order() int {
 	return len(g.connections)
 }
 

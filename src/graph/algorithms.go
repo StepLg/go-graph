@@ -28,7 +28,7 @@ func ReduceDirectPaths(og DirectedGraphReader, rg DirectedGraphArcsWriter, stopF
 // and nodes==nil in function result.
 func TopologicalSort(gr DirectedGraphReader) (nodes []VertexId, hasCycles bool) {
 	hasCycles = false
-	nodes = make([]VertexId, gr.VertexesCnt())
+	nodes = make([]VertexId, gr.Order())
 	pos := len(nodes)
 	// map of node status. If node doesn't present in map - white color,
 	// node in map with false value - grey color, and with true value - black color
@@ -93,7 +93,7 @@ func topologicalSortHelper(gr DirectedGraphReader, curNode VertexId, nodes []Ver
 // nodes from this subgraph will appear only once after the first source node
 func TopologicalSortFromSources(gr DirectedGraphReader, sources []VertexId) (nodes []VertexId, hasCycles bool) {
 	hasCycles = false
-	nodes = make([]VertexId, gr.VertexesCnt())
+	nodes = make([]VertexId, gr.Order())
 	pos := len(nodes)
 	// map of node status. If node doesn't present in map - white color,
 	// node in map with false value - grey color, and with true value - black color

@@ -163,7 +163,7 @@ func (g *UndirectedMatrix) RemoveEdge(node1, node2 VertexId) {
 // UndirectedGraphReader
 
 // Current nodes count in graph
-func (g *UndirectedMatrix) VertexesCnt() int {
+func (g *UndirectedMatrix) Order() int {
 	return int(len(g.VertexIds))
 }
 

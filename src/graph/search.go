@@ -205,7 +205,7 @@ func BellmanFordSingleSource(gr DirectedGraphReader, source VertexId, weight Con
 	
 	marks[source] = 0
 	
-	nodesCnt := gr.VertexesCnt()
+	nodesCnt := gr.Order()
 	for i:=0; i<nodesCnt; i++ {
 		for conn := range gr.ArcsIter() {
 			possibleWeight := marks[conn.Tail] + weight(conn.Tail, conn.Head)

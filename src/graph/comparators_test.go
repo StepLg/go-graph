@@ -20,7 +20,7 @@ func ComparatorsSpec(c gospec.Context) {
 	gr.AddArc(7, 4)
 
 	c.Specify("Graph copy", func() {
-		grcopy := NewMixedMatrix(gr.VertexesCnt())
+		grcopy := NewMixedMatrix(gr.Order())
 		CopyMixedGraph(gr, grcopy)
 
 		c.Specify("includes must be true in both ways", func() {
@@ -52,7 +52,7 @@ func ComparatorsSpec(c gospec.Context) {
 	})
 	
 	c.Specify("Graph copy with additional connection", func() {
-		grcopy := NewMixedMatrix(gr.VertexesCnt())
+		grcopy := NewMixedMatrix(gr.Order())
 		CopyMixedGraph(gr, grcopy)
 		grcopy.AddEdge(4, 6)
 		

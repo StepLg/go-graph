@@ -47,7 +47,7 @@ type GraphVertexesWriter interface {
 type GraphVertexesReader interface {
 	VertexesChecker
 	// Getting nodes count in graph
-	VertexesCnt() int
+	Order() int
 }
 
 type GraphVertexesRemover interface {

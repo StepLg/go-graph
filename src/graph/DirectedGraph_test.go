@@ -22,7 +22,7 @@ func DirectedGraphSpec(c gospec.Context, graphCreator func() DirectedGraph) {
 	
 	c.Specify("Empty directed graph", func() {
 		c.Specify("contain no nodes", func() {
-			c.Expect(gr.VertexesCnt(), Equals, 0)
+			c.Expect(gr.Order(), Equals, 0)
 		})
 		c.Specify("contain no edges", func() {
 			c.Expect(gr.ArcsCnt(), Equals, 0)
@@ -34,7 +34,7 @@ func DirectedGraphSpec(c gospec.Context, graphCreator func() DirectedGraph) {
 		gr.AddNode(VertexId)
 				
 		c.Specify("changing nodes count", func() {
-			c.Expect(gr.VertexesCnt(), Equals, 1)
+			c.Expect(gr.Order(), Equals, 1)
 		})
 		
 		c.Specify("doesn't change arrows count", func() {
@@ -69,7 +69,7 @@ func DirectedGraphSpec(c gospec.Context, graphCreator func() DirectedGraph) {
 		c.Expect(gr.CheckArc(vertexId, anotherVertexId), Equals, true)
 
 		c.Specify("changing nodes count", func() {
-			c.Expect(gr.VertexesCnt(), Equals, 2)
+			c.Expect(gr.Order(), Equals, 2)
 		})
 		
 		c.Specify("changing arrows count", func() {
@@ -111,7 +111,7 @@ func DirectedGraphSpec(c gospec.Context, graphCreator func() DirectedGraph) {
 		gr.AddArc(1, 7)
 		
 		c.Specify("checking nodes count", func() {
-			c.Expect(gr.VertexesCnt(), Equals, 7)
+			c.Expect(gr.Order(), Equals, 7)
 		})
 		
 		c.Specify("checking arrows count", func() {

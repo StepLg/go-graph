@@ -11,7 +11,7 @@ func UndirectedGraphSpec(c gospec.Context, graphCreator func() UndirectedGraph) 
 
 	c.Specify("Empty undirected graph", func() {
 		c.Specify("contain no nodes", func() {
-			c.Expect(gr.VertexesCnt(), Equals, 0)
+			c.Expect(gr.Order(), Equals, 0)
 		})
 		c.Specify("contain no edges", func() {
 			c.Expect(gr.EdgesCnt(), Equals, 0)
@@ -24,7 +24,7 @@ func UndirectedGraphSpec(c gospec.Context, graphCreator func() UndirectedGraph) 
 		gr.AddNode(VertexId)
 				
 		c.Specify("changing nodes count", func() {
-			c.Expect(gr.VertexesCnt(), Equals, 1)
+			c.Expect(gr.Order(), Equals, 1)
 		})
 		
 		c.Specify("doesn't change edges count", func() {
@@ -42,7 +42,7 @@ func UndirectedGraphSpec(c gospec.Context, graphCreator func() UndirectedGraph) 
 		gr.AddEdge(n1, n2)
 				
 		c.Specify("changing nodes count", func() {
-			c.Expect(gr.VertexesCnt(), Equals, 2)
+			c.Expect(gr.Order(), Equals, 2)
 		})
 		
 		c.Specify("changing edges count", func() {

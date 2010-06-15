@@ -51,7 +51,7 @@ func (gr *MixedMatrix) AddNode(node VertexId) {
 // GraphVertexesReader
 
 // Getting nodes count in graph
-func (gr *MixedMatrix) VertexesCnt() int {
+func (gr *MixedMatrix) Order() int {
 	return len(gr.VertexIds)
 }
 
