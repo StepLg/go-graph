@@ -156,6 +156,7 @@ type UndirectedGraph interface {
 
 type MixedGraphSpecificReader interface {
 	CheckEdgeType(tail, head VertexId) MixedConnectionType
+	ConnectionsCnt() int
 	TypedConnectionsIterable
 }
 

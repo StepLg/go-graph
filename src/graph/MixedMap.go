@@ -508,6 +508,10 @@ func (g *MixedMap) CheckEdgeType(tail VertexId, head VertexId) MixedConnectionTy
 	return direction
 }
 
+func (g *MixedMap) ConnectionsCnt() int {
+	return g.arcsCnt + g.edgesCnt
+}
+
 func (g *MixedMap) TypedConnectionsIter() <-chan TypedConnection {
 	ch := make(chan TypedConnection)
 	go func() {

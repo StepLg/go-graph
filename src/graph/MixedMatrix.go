@@ -536,6 +536,10 @@ func (gr *MixedMatrix) CheckEdgeType(tail VertexId, head VertexId) MixedConnecti
 	return gr.nodes[conn]
 }
 
+func (g *MixedMatrix) ConnectionsCnt() int {
+	return g.arcsCnt + g.edgesCnt
+}
+
 func (gr *MixedMatrix) TypedConnectionsIter() <-chan TypedConnection {
 	ch := make(chan TypedConnection)
 	go func() {
