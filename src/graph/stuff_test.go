@@ -17,7 +17,7 @@ func NodesPriorityQueueSpec(c gospec.Context) {
 		
 		c.Specify("after add", func() {
 			node := NodeId(1)
-			priority := 0.5
+			priority := float64(0.5)
 			q.Add(node, priority)
 			
 			c.Specify("no longer empty", func() {
@@ -47,13 +47,13 @@ func NodesPriorityQueueSpec(c gospec.Context) {
 	
 	c.Specify("Several items with priorities", func() {
 		n1 := NodeId(1)
-		p1 := 1.0
+		p1 := float64(1.0)
 		n2 := NodeId(2)
-		p2 := 2.0
+		p2 := float64(2.0)
 		n3 := NodeId(3)
-		p3 := 0.5
+		p3 := float64(0.5)
 		n4 := NodeId(4)
-		p4 := 1.5
+		p4 := float64(1.5)
 		
 		q.Add(n1, p1)
 		q.Add(n2, p2)
@@ -77,13 +77,13 @@ func NodesPriorityQueueSpec(c gospec.Context) {
 	
 	c.Specify("Manipulating items priority", func() {
 		n1 := NodeId(1)
-		p1 := 1.0
+		p1 := float64(1.0)
 		n2 := NodeId(2)
-		p2 := 2.0
+		p2 := float64(2.0)
 		n3 := NodeId(3)
-		p3 := 0.5
+		p3 := float64(0.5)
 		n4 := NodeId(4)
-		p4 := 1.5
+		p4 := float64(1.5)
 		
 		q.Add(n1, p1)
 		q.Add(n2, p2)
@@ -109,7 +109,7 @@ func NodesPriorityQueueSpec(c gospec.Context) {
 		})
 
 		c.Specify("Change middle to top", func() {
-			p4 = 3.0
+			p4 = float64(3.0)
 			q.Add(n4, p4)
 			
 			c.Expect(q.Size(), Equals, 4)
@@ -130,17 +130,17 @@ func NodesPriorityQueueSpec(c gospec.Context) {
 	
 	c.Specify("Push more items than initial size", func() {
 		n1 := NodeId(1)
-		p1 := 1.0
+		p1 := float64(1.0)
 		n2 := NodeId(2)
-		p2 := 2.0
+		p2 := float64(2.0)
 		n3 := NodeId(3)
-		p3 := 0.5
+		p3 := float64(0.5)
 		n4 := NodeId(4)
-		p4 := 1.5
+		p4 := float64(1.5)
 		n5 := NodeId(6)
-		p5 := 1.6
+		p5 := float64(1.6)
 		n6 := NodeId(7)
-		p6 := 1.7
+		p6 := float64(1.7)
 		
 		
 		q.Add(n1, p1)

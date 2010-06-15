@@ -1,6 +1,8 @@
 package graph
 
 import (
+	"fmt"
+
 	"testing"
 	"github.com/orfjackal/gospec/src/gospec"
 	. "github.com/orfjackal/gospec/src/gospec"
@@ -20,7 +22,7 @@ func generateMixedGraph1() MixedGraph {
 	return gr	
 }
 
-func CheckDirectedPathSpec(c gospec.Context, checkPathFunction CheckDirectedPath) {
+func generateDirectedGraph1() DirectedGraph {
 	gr := NewDirectedMap()
 	gr.AddArc(1, 2)
 	gr.AddArc(2, 3)
@@ -29,6 +31,12 @@ func CheckDirectedPathSpec(c gospec.Context, checkPathFunction CheckDirectedPath
 	gr.AddArc(4, 5)
 	gr.AddArc(1, 6)
 	gr.AddArc(2, 6)
+	
+	return gr
+}
+
+func CheckDirectedPathSpec(c gospec.Context, checkPathFunction CheckDirectedPath) {
+	gr := generateDirectedGraph1()
 	
 	c.Specify("Check path to self", func() {
 		c.Expect(checkPathFunction(gr, 1, 1, nil, SimpleWeightFunc), IsTrue) 
@@ -53,7 +61,7 @@ func CheckDirectedPathSpec(c gospec.Context, checkPathFunction CheckDirectedPath
 	})
 	
 	c.Specify("Check weight limit", func() {
-		c.Expect(checkPathFunction(gr, 1, 5, func(node NodeId, weight float) bool {
+		c.Expect(checkPathFunction(gr, 1, 5, func(node NodeId, weight float64) bool {
 			return weight < 2.0
 		}, SimpleWeightFunc), IsFalse)
 	})
@@ -95,7 +103,7 @@ func CheckMixedPathSpec(c gospec.Context, checkPathFunction CheckMixedPath) {
 	})
 	
 	c.Specify("Check weight limit", func() {
-		c.Expect(checkPathFunction(gr, 1, 5, func(node NodeId, weight float) bool {
+		c.Expect(checkPathFunction(gr, 1, 5, func(node NodeId, weight float64) bool {
 			return weight < 2.0
 		}, SimpleWeightFunc), IsFalse)
 	})
@@ -118,6 +126,13 @@ func GetAllMixedPathsSpec(c gospec.Context) {
 	}
 	
 	c.Expect(pathsCnt, Equals, 4)
+}
+
+func BellmanFordSingleSourceSpec(c gospec.Context) {
+	gr := generateDirectedGraph1()
+	
+	marks := BellmanFordSingleSource(gr, NodeId(2), SimpleWeightFunc)
+	c.Expect(len(marks), Equals, gr.NodesCnt())
 }
 
 func TestSearch(t *testing.T) {
@@ -143,6 +158,7 @@ func TestSearch(t *testing.T) {
 	}
 	
 	r.AddSpec(GetAllMixedPathsSpec)
+	r.AddSpec(BellmanFordSingleSourceSpec)
 
 
 	gospec.MainGoTest(r, t)

@@ -2,17 +2,18 @@ package graph
 
 import (
 	. "exp/iterable"
+	"math"
 
 	"github.com/StepLg/go-erx/src/erx"
 )
 
 
-type ConnectionWeightFunc func(head, tail NodeId) float
+type ConnectionWeightFunc func(head, tail NodeId) float64
 
-type StopFunc func(node NodeId, sumWeight float) bool
+type StopFunc func(node NodeId, sumWeight float64) bool
 
-func SimpleWeightFunc(head, tail NodeId) float {
-	return 1.0
+func SimpleWeightFunc(head, tail NodeId) float64 {
+	return float64(1.0)
 }
 
 type AllNeighboursExtractor interface {
@@ -68,7 +69,7 @@ func NewMixedNeighboursExtractor(gr MixedGraphConnectionsReader) AllNeighboursEx
 // weightFunction calculates total path weight
 // 
 // As a result CheckPathDijkstra returns total weight of path, if it exists.
-func CheckPathDijkstra(neighboursExtractor AllNeighboursExtractor, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) (float, bool) {
+func CheckPathDijkstra(neighboursExtractor AllNeighboursExtractor, from, to NodeId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) (float64, bool) {
 	defer func() {
 		if e:=recover(); e!=nil {
 			err := erx.NewSequent("Check path graph with Dijkstra algorithm", e)
@@ -188,4 +189,37 @@ func GetAllUndirectedPaths(gr UndirectedGraphEdgesReader, from, to NodeId) <-cha
 
 func GetAllMixedPaths(gr MixedGraphConnectionsReader, from, to NodeId) <-chan []NodeId {
 	return GetAllPaths(NewMixedNeighboursExtractor(gr), from, to)
+}
+
+// Compute single-source shortest paths with Bellman-Ford algorithm
+//
+// Returs map, contains all nodes from graph. If there is no path from source to node in map
+// then value for this node is math.MaxFloat64
+//
+// Returns nil if there are negative cycles. 
+func BellmanFordSingleSource(gr DirectedGraphReader, source NodeId, weight ConnectionWeightFunc) map[NodeId]float64 {
+	marks := make(map[NodeId]float64)
+	for node := range gr.NodesIter() {
+		marks[node] = math.MaxFloat64
+	}
+	
+	marks[source] = 0
+	
+	nodesCnt := gr.NodesCnt()
+	for i:=0; i<nodesCnt; i++ {
+		for conn := range gr.ArcsIter() {
+			possibleWeight := marks[conn.Tail] + weight(conn.Tail, conn.Head)
+			if marks[conn.Head] > possibleWeight {
+				marks[conn.Head] = possibleWeight
+			}
+		}
+	}
+	
+	for conn := range gr.ArcsIter() {
+		if marks[conn.Head] > marks[conn.Tail] + weight(conn.Tail, conn.Head) {
+			return nil
+		}
+	}
+	
+	return marks
 }

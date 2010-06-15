@@ -5,12 +5,12 @@ import (
 )
 
 // Copy graph og to rg except args i->j, where exists non direct path i->...->j
-func ReduceDirectPaths(og DirectedGraphReader, rg DirectedGraphArcsWriter, stopFunc func(from, to NodeId, weight float) bool) {
+func ReduceDirectPaths(og DirectedGraphReader, rg DirectedGraphArcsWriter, stopFunc func(from, to NodeId, weight float64) bool) {
 	var checkStopFunc StopFunc
 	for conn := range og.ArcsIter() {
 		filteredGraph := NewDirectedGraphArcFilter(og, conn.Tail, conn.Head)
 		if stopFunc!=nil {
-			checkStopFunc = func(node NodeId, weight float) bool {
+			checkStopFunc = func(node NodeId, weight float64) bool {
 				return stopFunc(conn.Tail, node, weight)
 			}
 		} else {

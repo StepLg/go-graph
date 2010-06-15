@@ -50,7 +50,7 @@ func NewDirectedConnection(tail, head NodeId) TypedConnection {
 // internal struct to store node with it's priority for priority queue
 type priority_data_t struct {
 	Node NodeId
-	Priority float
+	Priority float64
 }
 
 type nodesPriority []priority_data_t
@@ -70,15 +70,15 @@ func (d nodesPriority) Len() int {
 // Nodes priority queue
 type nodesPriorityQueue interface {
 	// Add new item to queue
-	Add(node NodeId, priority float)
+	Add(node NodeId, priority float64)
 	// Get item with max priority and remove it from the queue
 	//
 	// Panic if queue is empty
-	Next() (NodeId, float)
+	Next() (NodeId, float64)
 	// Get item with max priority without removing it from the queue
 	//
 	// Panic if queue is empty
-	Pick() (NodeId, float)
+	Pick() (NodeId, float64)
 	// Total queue size
 	Size() int
 	// Check if queue is empty
@@ -113,7 +113,7 @@ func newPriorityQueueSimple(initialSize int) *nodesPriorityQueueSimple {
 }
 
 // Add new item to queue
-func (q *nodesPriorityQueueSimple) Add(node NodeId, priority float) {
+func (q *nodesPriorityQueueSimple) Add(node NodeId, priority float64) {
 	defer func() {
 		if e := recover(); e!=nil {
 			err := erx.NewSequent("", e)
@@ -168,7 +168,7 @@ func (q *nodesPriorityQueueSimple) Add(node NodeId, priority float) {
 // Get item with max priority and remove it from the queue
 //
 // Panic if queue is empty
-func (q *nodesPriorityQueueSimple) Next() (NodeId, float) {
+func (q *nodesPriorityQueueSimple) Next() (NodeId, float64) {
 	if q.Empty() {
 		panic("Can't pick from empty queue.")
 	}
@@ -182,7 +182,7 @@ func (q *nodesPriorityQueueSimple) Next() (NodeId, float) {
 // Get item with max priority without removing it from the queue
 //
 // Panic if queue is empty
-func (q *nodesPriorityQueueSimple) Pick() (NodeId, float) {
+func (q *nodesPriorityQueueSimple) Pick() (NodeId, float64) {
 	if q.Empty() {
 		panic("Can't pick from empty queue.")
 	}
