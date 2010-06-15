@@ -42,9 +42,9 @@ func (g *UndirectedMatrix) ConnectionsIter() <-chan Connection {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// NodesIterable
+// VertexesIterable
 
-func (g *UndirectedMatrix) NodesIter() <-chan VertexId {
+func (g *UndirectedMatrix) VertexesIter() <-chan VertexId {
 	ch := make(chan VertexId)
 	go func() {
 		for VertexId, _ := range g.VertexIds {
@@ -56,7 +56,7 @@ func (g *UndirectedMatrix) NodesIter() <-chan VertexId {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// NodesChecker
+// VertexesChecker
 
 func (g *UndirectedMatrix) CheckNode(node VertexId) (exists bool) {
 	_, exists = g.VertexIds[node]
@@ -64,7 +64,7 @@ func (g *UndirectedMatrix) CheckNode(node VertexId) (exists bool) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// UndirectedGraphNodesWriter
+// UndirectedGraphVertexesWriter
 
 // Adding single node to graph
 func (g *UndirectedMatrix) AddNode(node VertexId) {
@@ -84,7 +84,7 @@ func (g *UndirectedMatrix) AddNode(node VertexId) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// GraphNodesRemover
+// GraphVertexesRemover
 
 func (g *UndirectedMatrix) RemoveNode(node VertexId) {
 	panic(erx.NewError("Function doesn't implemented yet."))
@@ -163,7 +163,7 @@ func (g *UndirectedMatrix) RemoveEdge(node1, node2 VertexId) {
 // UndirectedGraphReader
 
 // Current nodes count in graph
-func (g *UndirectedMatrix) NodesCnt() int {
+func (g *UndirectedMatrix) VertexesCnt() int {
 	return int(len(g.VertexIds))
 }
 
@@ -174,7 +174,7 @@ func (g *UndirectedMatrix) EdgesCnt() int {
 
 
 // Getting all nodes, connected to given one
-func (g *UndirectedMatrix) GetNeighbours(node VertexId) NodesIterable {
+func (g *UndirectedMatrix) GetNeighbours(node VertexId) VertexesIterable {
 	iterator := func() <-chan VertexId {
 		ch := make(chan VertexId)
 		go func() {
@@ -200,7 +200,7 @@ func (g *UndirectedMatrix) GetNeighbours(node VertexId) NodesIterable {
 		return ch
 	}
 	
-	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
+	return VertexesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 func (g *UndirectedMatrix) EdgesIter() <-chan Connection {

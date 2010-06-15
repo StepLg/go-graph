@@ -17,14 +17,14 @@ func SimpleWeightFunc(head, tail VertexId) float64 {
 }
 
 type AllNeighboursExtractor interface {
-	GetAllNeighbours(node VertexId) NodesIterable
+	GetAllNeighbours(node VertexId) VertexesIterable
 }
 
 type allDirectedNeighboursExtractor struct {
 	dgraph DirectedGraphArcsReader
 }
 
-func (e *allDirectedNeighboursExtractor) GetAllNeighbours(node VertexId) NodesIterable {
+func (e *allDirectedNeighboursExtractor) GetAllNeighbours(node VertexId) VertexesIterable {
 	return e.dgraph.GetAccessors(node)
 }
 
@@ -36,7 +36,7 @@ type allUndirectedNeighboursExtractor struct {
 	ugraph UndirectedGraphEdgesReader
 }
 
-func (e *allUndirectedNeighboursExtractor) GetAllNeighbours(node VertexId) NodesIterable {
+func (e *allUndirectedNeighboursExtractor) GetAllNeighbours(node VertexId) VertexesIterable {
 	return e.ugraph.GetNeighbours(node)
 }
 
@@ -48,10 +48,10 @@ type allMixedNeighboursExtractor struct {
 	mgraph MixedGraphConnectionsReader
 }
 
-func (e *allMixedNeighboursExtractor) GetAllNeighbours(node VertexId) NodesIterable {
-	return GenericToNodesIter(Chain(&[...]Iterable{
-		NodesToGenericIter(e.mgraph.GetAccessors(node)), 
-		NodesToGenericIter(e.mgraph.GetNeighbours(node)),
+func (e *allMixedNeighboursExtractor) GetAllNeighbours(node VertexId) VertexesIterable {
+	return GenericToVertexesIter(Chain(&[...]Iterable{
+		VertexesToGenericIter(e.mgraph.GetAccessors(node)), 
+		VertexesToGenericIter(e.mgraph.GetNeighbours(node)),
 	}))
 }
 
@@ -90,7 +90,7 @@ func CheckPathDijkstra(neighboursExtractor AllNeighboursExtractor, from, to Vert
 		curNode, curWeight := q.Next()
 		curWeight = -curWeight // because we inverse weight in priority queue
 	
-		for nextNode := range neighboursExtractor.GetAllNeighbours(curNode).NodesIter() {
+		for nextNode := range neighboursExtractor.GetAllNeighbours(curNode).VertexesIter() {
 			arcWeight := weightFunction(curNode, nextNode)
 			if arcWeight < 0 {
 				err := erx.NewError("Negative weight detected")
@@ -167,7 +167,7 @@ func getAllPaths_helper(neighboursExtractor AllNeighboursExtractor, from, to Ver
 	}
 	nodesStatus[from] = true
 	
-	for nextNode := range neighboursExtractor.GetAllNeighbours(from).NodesIter() {
+	for nextNode := range neighboursExtractor.GetAllNeighbours(from).VertexesIter() {
 		getAllPaths_helper(neighboursExtractor, nextNode, to, curPath, pathPos+1, nodesStatus, ch, false)
 	}
 	
@@ -199,13 +199,13 @@ func GetAllMixedPaths(gr MixedGraphConnectionsReader, from, to VertexId) <-chan 
 // Returns nil if there are negative cycles. 
 func BellmanFordSingleSource(gr DirectedGraphReader, source VertexId, weight ConnectionWeightFunc) map[VertexId]float64 {
 	marks := make(map[VertexId]float64)
-	for node := range gr.NodesIter() {
+	for node := range gr.VertexesIter() {
 		marks[node] = math.MaxFloat64
 	}
 	
 	marks[source] = 0
 	
-	nodesCnt := gr.NodesCnt()
+	nodesCnt := gr.VertexesCnt()
 	for i:=0; i<nodesCnt; i++ {
 		for conn := range gr.ArcsIter() {
 			possibleWeight := marks[conn.Tail] + weight(conn.Tail, conn.Head)

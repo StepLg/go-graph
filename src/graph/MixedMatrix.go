@@ -24,7 +24,7 @@ func NewMixedMatrix(size int) *MixedMatrix {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// GraphNodesWriter
+// GraphVertexesWriter
 
 // Adding single node to graph
 func (gr *MixedMatrix) AddNode(node VertexId) {
@@ -48,15 +48,15 @@ func (gr *MixedMatrix) AddNode(node VertexId) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// GraphNodesReader
+// GraphVertexesReader
 
 // Getting nodes count in graph
-func (gr *MixedMatrix) NodesCnt() int {
+func (gr *MixedMatrix) VertexesCnt() int {
 	return len(gr.VertexIds)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// GraphNodesRemover
+// GraphVertexesRemover
 
 // Removing node from graph
 func (gr *MixedMatrix) RemoveNode(node VertexId) {
@@ -86,8 +86,8 @@ func (gr *MixedMatrix) ConnectionsIter() <-chan Connection {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// NodesIterable
-func (gr *MixedMatrix) NodesIter() <-chan VertexId {
+// VertexesIterable
+func (gr *MixedMatrix) VertexesIter() <-chan VertexId {
 	ch := make(chan VertexId)
 	go func() {
 		for VertexId, _ := range gr.VertexIds {
@@ -99,7 +99,7 @@ func (gr *MixedMatrix) NodesIter() <-chan VertexId {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// NodesChecker
+// VertexesChecker
 
 func (g *MixedMatrix) CheckNode(node VertexId) (exists bool) {
 	_, exists = g.VertexIds[node]
@@ -187,7 +187,7 @@ func (gr *MixedMatrix) CheckEdge(node1, node2 VertexId) bool {
 }
 
 // Getting all nodes, connected to given one
-func (gr *MixedMatrix) GetNeighbours(node VertexId) NodesIterable {
+func (gr *MixedMatrix) GetNeighbours(node VertexId) VertexesIterable {
 	iterator := func() <-chan VertexId {
 		ch := make(chan VertexId)
 		
@@ -217,7 +217,7 @@ func (gr *MixedMatrix) GetNeighbours(node VertexId) NodesIterable {
 		return ch
 	}
 	
-	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
+	return VertexesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -293,7 +293,7 @@ func (gr *MixedMatrix) ArcsCnt() int {
 }
 
 // Getting all graph sources.
-func (gr *MixedMatrix) GetSources() NodesIterable {
+func (gr *MixedMatrix) GetSources() VertexesIterable {
 	iterator := func() <-chan VertexId {
 		ch := make(chan VertexId)
 		go func() {
@@ -327,11 +327,11 @@ func (gr *MixedMatrix) GetSources() NodesIterable {
 		return ch
 	}
 	
-	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
+	return VertexesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Getting all graph sinks.
-func (gr *MixedMatrix) GetSinks() NodesIterable {
+func (gr *MixedMatrix) GetSinks() VertexesIterable {
 	iterator := func() <-chan VertexId {
 		ch := make(chan VertexId)
 		go func() {
@@ -365,11 +365,11 @@ func (gr *MixedMatrix) GetSinks() NodesIterable {
 		return ch
 	}
 	
-	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
+	return VertexesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Getting node accessors
-func (gr *MixedMatrix) GetAccessors(node VertexId) NodesIterable {
+func (gr *MixedMatrix) GetAccessors(node VertexId) VertexesIterable {
 	iterator := func() <-chan VertexId {
 		ch := make(chan VertexId)
 		
@@ -407,11 +407,11 @@ func (gr *MixedMatrix) GetAccessors(node VertexId) NodesIterable {
 		return ch
 	}
 	
-	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
+	return VertexesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Getting node predecessors
-func (gr *MixedMatrix) GetPredecessors(node VertexId) NodesIterable {
+func (gr *MixedMatrix) GetPredecessors(node VertexId) VertexesIterable {
 	iterator := func() <-chan VertexId {
 		ch := make(chan VertexId)
 		
@@ -449,7 +449,7 @@ func (gr *MixedMatrix) GetPredecessors(node VertexId) NodesIterable {
 		return ch
 	}
 	
-	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
+	return VertexesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Checking arrow existance between node1 and node2

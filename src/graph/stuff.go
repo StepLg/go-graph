@@ -67,7 +67,7 @@ func (d nodesPriority) Len() int {
 	return len(d)
 }
 
-// Nodes priority queue
+// Vertexes priority queue
 type nodesPriorityQueue interface {
 	// Add new item to queue
 	Add(node VertexId, priority float64)
@@ -327,6 +327,6 @@ type nodesIterableLambdaHelper struct {
 	iterFunc func() <-chan VertexId
 }
 
-func (helper *nodesIterableLambdaHelper) NodesIter() <-chan VertexId {
+func (helper *nodesIterableLambdaHelper) VertexesIter() <-chan VertexId {
 	return helper.iterFunc()
 }

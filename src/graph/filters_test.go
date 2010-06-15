@@ -26,10 +26,10 @@ func DirectedGraphArcsFilterSpec(c gospec.Context) {
 		})
 		
 		c.Specify("shouldn't appear in accessors", func() {
-			c.Expect(CollectNodes(f.GetAccessors(VertexId(ftail))), Not(Contains), fhead)
+			c.Expect(CollectVertexes(f.GetAccessors(VertexId(ftail))), Not(Contains), fhead)
 		})
 		c.Specify("shouldn't appear in predecessors", func() {
-			c.Expect(CollectNodes(f.GetPredecessors(VertexId(fhead))), Not(Contains), ftail)
+			c.Expect(CollectVertexes(f.GetPredecessors(VertexId(fhead))), Not(Contains), ftail)
 		})
 		c.Specify("shouldn't appear in iterator", func() {
 			for conn := range f.ArcsIter() {
@@ -65,8 +65,8 @@ func UndirectedGraphEdgesFilterSpec(c gospec.Context) {
 		})
 		
 		c.Specify("shouldn't appear in neighbours", func() {
-			c.Expect(CollectNodes(f.GetNeighbours(VertexId(ftail))), Not(Contains), fhead)
-			c.Expect(CollectNodes(f.GetNeighbours(VertexId(fhead))), Not(Contains), ftail)
+			c.Expect(CollectVertexes(f.GetNeighbours(VertexId(ftail))), Not(Contains), fhead)
+			c.Expect(CollectVertexes(f.GetNeighbours(VertexId(fhead))), Not(Contains), ftail)
 		})
 		c.Specify("shouldn't appear in iterator", func() {
 			for conn := range f.EdgesIter() {
@@ -97,10 +97,10 @@ func MixedGraphConnectionsFilterSpec(c gospec.Context) {
 		})
 		
 		c.Specify("shouldn't appear in accessors", func() {
-			c.Expect(CollectNodes(f.GetAccessors(VertexId(ftail))), Not(Contains), fhead)
+			c.Expect(CollectVertexes(f.GetAccessors(VertexId(ftail))), Not(Contains), fhead)
 		})
 		c.Specify("shouldn't appear in predecessors", func() {
-			c.Expect(CollectNodes(f.GetPredecessors(VertexId(fhead))), Not(Contains), ftail)
+			c.Expect(CollectVertexes(f.GetPredecessors(VertexId(fhead))), Not(Contains), ftail)
 		})
 		c.Specify("shouldn't appear in iterator", func() {
 			for conn := range f.ArcsIter() {

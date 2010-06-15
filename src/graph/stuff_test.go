@@ -6,7 +6,7 @@ import (
 	. "github.com/orfjackal/gospec/src/gospec"
 )
 
-func NodesPriorityQueueSpec(c gospec.Context) {
+func VertexesPriorityQueueSpec(c gospec.Context) {
 	q := newPriorityQueueSimple(5)
 	
 	c.Specify("Empty queue", func() {
@@ -188,7 +188,7 @@ func MatrixIndexerSpec(c gospec.Context) {
 
 func TestStuff(t *testing.T) {
 	r := gospec.NewRunner()
-	r.AddSpec(NodesPriorityQueueSpec)
+	r.AddSpec(VertexesPriorityQueueSpec)
 	r.AddSpec(MatrixIndexerSpec)
 	gospec.MainGoTest(r, t)
 }

@@ -22,7 +22,7 @@ func DirectedGraphSpec(c gospec.Context, graphCreator func() DirectedGraph) {
 	
 	c.Specify("Empty directed graph", func() {
 		c.Specify("contain no nodes", func() {
-			c.Expect(gr.NodesCnt(), Equals, 0)
+			c.Expect(gr.VertexesCnt(), Equals, 0)
 		})
 		c.Specify("contain no edges", func() {
 			c.Expect(gr.ArcsCnt(), Equals, 0)
@@ -34,7 +34,7 @@ func DirectedGraphSpec(c gospec.Context, graphCreator func() DirectedGraph) {
 		gr.AddNode(VertexId)
 				
 		c.Specify("changing nodes count", func() {
-			c.Expect(gr.NodesCnt(), Equals, 1)
+			c.Expect(gr.VertexesCnt(), Equals, 1)
 		})
 		
 		c.Specify("doesn't change arrows count", func() {
@@ -42,21 +42,21 @@ func DirectedGraphSpec(c gospec.Context, graphCreator func() DirectedGraph) {
 		})
 		
 		c.Specify("no accessors", func() {
-			accessors := CollectNodes(gr.GetAccessors(VertexId))
+			accessors := CollectVertexes(gr.GetAccessors(VertexId))
 			c.Expect(len(accessors), Equals, 0)
 		})
 		
 		c.Specify("no predecessors", func() {
-			c.Expect(len(CollectNodes(gr.GetPredecessors(VertexId))), Equals, 0)
+			c.Expect(len(CollectVertexes(gr.GetPredecessors(VertexId))), Equals, 0)
 		})
 		
 		c.Specify("node becomes a source", func() {
-			sources := CollectNodes(gr.GetSources())
+			sources := CollectVertexes(gr.GetSources())
 			c.Expect(sources, ContainsExactly, Values(VertexId))
 		})
 
 		c.Specify("node becomes a sink", func() {
-			sinks := CollectNodes(gr.GetSinks())
+			sinks := CollectVertexes(gr.GetSinks())
 			c.Expect(sinks, ContainsExactly, Values(VertexId))
 		})
 
@@ -69,7 +69,7 @@ func DirectedGraphSpec(c gospec.Context, graphCreator func() DirectedGraph) {
 		c.Expect(gr.CheckArc(vertexId, anotherVertexId), Equals, true)
 
 		c.Specify("changing nodes count", func() {
-			c.Expect(gr.NodesCnt(), Equals, 2)
+			c.Expect(gr.VertexesCnt(), Equals, 2)
 		})
 		
 		c.Specify("changing arrows count", func() {
@@ -77,27 +77,27 @@ func DirectedGraphSpec(c gospec.Context, graphCreator func() DirectedGraph) {
 		})
 		
 		c.Specify("correct accessors in arrow start", func() {
-			c.Expect(CollectNodes(gr.GetAccessors(vertexId)), ContainsExactly, Values(anotherVertexId))
+			c.Expect(CollectVertexes(gr.GetAccessors(vertexId)), ContainsExactly, Values(anotherVertexId))
 		})
 
 		c.Specify("correct predecessors in arrow start", func() {
-			c.Expect(len(CollectNodes(gr.GetPredecessors(vertexId))), Equals, 0)
+			c.Expect(len(CollectVertexes(gr.GetPredecessors(vertexId))), Equals, 0)
 		})
 
 		c.Specify("correct accessors in arrow end", func() {
-			c.Expect(len(CollectNodes(gr.GetAccessors(anotherVertexId))), Equals, 0)
+			c.Expect(len(CollectVertexes(gr.GetAccessors(anotherVertexId))), Equals, 0)
 		})
 
 		c.Specify("correct predecessors in arrow end", func() {
-			c.Expect(CollectNodes(gr.GetPredecessors(anotherVertexId)), ContainsExactly, Values(vertexId))
+			c.Expect(CollectVertexes(gr.GetPredecessors(anotherVertexId)), ContainsExactly, Values(vertexId))
 		})
 		
 		c.Specify("arrow start becomes a source", func() {
-			c.Expect(CollectNodes(gr.GetSources()), ContainsExactly, Values(vertexId))
+			c.Expect(CollectVertexes(gr.GetSources()), ContainsExactly, Values(vertexId))
 		})
 
 		c.Specify("arrow end becomes a sink", func() {
-			c.Expect(CollectNodes(gr.GetSinks()), ContainsExactly, Values(anotherVertexId))
+			c.Expect(CollectVertexes(gr.GetSinks()), ContainsExactly, Values(anotherVertexId))
 		})
 	})
 	
@@ -111,7 +111,7 @@ func DirectedGraphSpec(c gospec.Context, graphCreator func() DirectedGraph) {
 		gr.AddArc(1, 7)
 		
 		c.Specify("checking nodes count", func() {
-			c.Expect(gr.NodesCnt(), Equals, 7)
+			c.Expect(gr.VertexesCnt(), Equals, 7)
 		})
 		
 		c.Specify("checking arrows count", func() {
@@ -119,45 +119,45 @@ func DirectedGraphSpec(c gospec.Context, graphCreator func() DirectedGraph) {
 		})
 		
 		c.Specify("checking sources", func() {
-			sources := CollectNodes(gr.GetSources())
+			sources := CollectVertexes(gr.GetSources())
 			c.Expect(sources, ContainsExactly, Values(VertexId(4), VertexId(6)))
 			
 			c.Specify("every source hasn't any predecessors", func() {
 				for _, vertexId := range sources {
-					c.Expect(len(CollectNodes(gr.GetPredecessors(vertexId))), Equals, 0)
+					c.Expect(len(CollectVertexes(gr.GetPredecessors(vertexId))), Equals, 0)
 				}
 			})
 		})
 		
 		c.Specify("checking sinks", func() {
-			sinks := CollectNodes(gr.GetSinks())
+			sinks := CollectVertexes(gr.GetSinks())
 			c.Expect(sinks, ContainsExactly, Values(VertexId(5), VertexId(7)))
 
 			c.Specify("every sink hasn't any accessors", func() {
 				for _, vertexId := range sinks {
-					c.Expect(len(CollectNodes(gr.GetAccessors(vertexId))), Equals, 0)
+					c.Expect(len(CollectVertexes(gr.GetAccessors(vertexId))), Equals, 0)
 				}
 			})
 		})
 		
 		c.Specify("checking accessors in intermediate node", func() {
-			accessors := CollectNodes(gr.GetAccessors(1))
+			accessors := CollectVertexes(gr.GetAccessors(1))
 			c.Expect(accessors, ContainsExactly, Values(VertexId(2), VertexId(5), VertexId(7)))
 			
 			c.Specify("every accessor has this node in predecessors", func() {
 				for _, vertexId := range accessors {
-					c.Expect(CollectNodes(gr.GetPredecessors(vertexId)), Contains, VertexId(1))
+					c.Expect(CollectVertexes(gr.GetPredecessors(vertexId)), Contains, VertexId(1))
 				}
 			})
 		})
 
 		c.Specify("checking predecessors in intermediate node", func() {
-			predecessors := CollectNodes(gr.GetPredecessors(5))
+			predecessors := CollectVertexes(gr.GetPredecessors(5))
 			c.Expect(predecessors, ContainsExactly, Values(VertexId(1), VertexId(4)))
 			
 			c.Specify("every predecessor has this node in accessors", func() {
 				for _, vertexId := range predecessors {
-					c.Expect(CollectNodes(gr.GetAccessors(vertexId)), Contains, VertexId(5))
+					c.Expect(CollectVertexes(gr.GetAccessors(vertexId)), Contains, VertexId(5))
 				}
 			})
 		})

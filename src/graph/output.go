@@ -88,8 +88,8 @@ func SimpleArcStyle(conn Connection) map[string]string {
 	return make(map[string]string)
 }
 
-func PlotNodesToDot(nodesIter NodesIterable, wr IWriter, styleFunc DotNodeStyleFunc) {
-	for node := range nodesIter.NodesIter() {
+func PlotVertexesToDot(nodesIter VertexesIterable, wr IWriter, styleFunc DotNodeStyleFunc) {
+	for node := range nodesIter.VertexesIter() {
 		wr.Write("n" + node.String() + styleMapToString(styleFunc(node)) + ";\n")
 	}
 }
@@ -105,14 +105,14 @@ func PlotArcsToDot(connIter TypedConnectionsIterable, wr IWriter, styleFunc DotC
 
 func PlotDirectedGraphToDot(gr DirectedGraphReader, wr IWriter, nodeStyleFunc DotNodeStyleFunc, arcStyleFunc DotConnectionStyleFunc) {
 	wr.Write("digraph messages {\n")
-	PlotNodesToDot(gr, wr, nodeStyleFunc)
+	PlotVertexesToDot(gr, wr, nodeStyleFunc)
 	PlotArcsToDot(ArcsToTypedConnIterable(gr), wr, arcStyleFunc)
 	wr.Write("}\n")
 }
 
 func PlotMixedGraphToDot(gr MixedGraph, wr IWriter, nodeStyleFunc DotNodeStyleFunc, connStyleFunc DotConnectionStyleFunc) {
 	wr.Write("digraph messages {\n")
-	PlotNodesToDot(gr, wr, nodeStyleFunc)
+	PlotVertexesToDot(gr, wr, nodeStyleFunc)
 	PlotArcsToDot(gr, wr, connStyleFunc)
 	wr.Write("}\n")
 }

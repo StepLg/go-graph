@@ -20,12 +20,12 @@ func ComparatorsSpec(c gospec.Context) {
 	gr.AddArc(7, 4)
 
 	c.Specify("Graph copy", func() {
-		grcopy := NewMixedMatrix(gr.NodesCnt())
+		grcopy := NewMixedMatrix(gr.VertexesCnt())
 		CopyMixedGraph(gr, grcopy)
 
 		c.Specify("includes must be true in both ways", func() {
-			c.Expect(GraphIncludeNodes(gr, grcopy), IsTrue)
-			c.Expect(GraphIncludeNodes(grcopy, gr), IsTrue)
+			c.Expect(GraphIncludeVertexes(gr, grcopy), IsTrue)
+			c.Expect(GraphIncludeVertexes(grcopy, gr), IsTrue)
 
 			c.Expect(MixedGraphIncludeConnections(gr, grcopy), IsTrue)
 			c.Expect(MixedGraphIncludeConnections(grcopy, gr), IsTrue)
@@ -52,13 +52,13 @@ func ComparatorsSpec(c gospec.Context) {
 	})
 	
 	c.Specify("Graph copy with additional connection", func() {
-		grcopy := NewMixedMatrix(gr.NodesCnt())
+		grcopy := NewMixedMatrix(gr.VertexesCnt())
 		CopyMixedGraph(gr, grcopy)
 		grcopy.AddEdge(4, 6)
 		
 		c.Specify("includes original as a subgraph", func() {
-			c.Expect(GraphIncludeNodes(gr, grcopy), IsTrue)
-			c.Expect(GraphIncludeNodes(grcopy, gr), IsTrue)
+			c.Expect(GraphIncludeVertexes(gr, grcopy), IsTrue)
+			c.Expect(GraphIncludeVertexes(grcopy, gr), IsTrue)
 
 			c.Expect(MixedGraphIncludeConnections(gr, grcopy), IsFalse)
 			c.Expect(MixedGraphIncludeConnections(grcopy, gr), IsTrue)

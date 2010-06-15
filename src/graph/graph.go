@@ -2,7 +2,7 @@ package graph
 
 type VertexId uint
 
-type Nodes []VertexId
+type Vertexes []VertexId
 
 type Connection struct {
 	Tail VertexId
@@ -30,27 +30,27 @@ type TypedConnectionsIterable interface {
 	TypedConnectionsIter() <-chan TypedConnection
 }
 
-type NodesIterable interface {
-	NodesIter() <-chan VertexId
+type VertexesIterable interface {
+	VertexesIter() <-chan VertexId
 }
 
-type NodesChecker interface {
+type VertexesChecker interface {
 	// Check node existance in graph
 	CheckNode(node VertexId) bool
 }
 
-type GraphNodesWriter interface {
+type GraphVertexesWriter interface {
 	// Adding single node to graph
 	AddNode(node VertexId)
 }
 
-type GraphNodesReader interface {
-	NodesChecker
+type GraphVertexesReader interface {
+	VertexesChecker
 	// Getting nodes count in graph
-	NodesCnt() int
+	VertexesCnt() int
 }
 
-type GraphNodesRemover interface {
+type GraphVertexesRemover interface {
 	// Removing node from graph
 	RemoveNode(node VertexId)
 }
@@ -72,16 +72,16 @@ type DirectedGraphArcsReader interface {
 	ArcsCnt() int
 
 	// Getting all graph sources.
-	GetSources() NodesIterable
+	GetSources() VertexesIterable
 	
 	// Getting all graph sinks.
-	GetSinks() NodesIterable
+	GetSinks() VertexesIterable
 	
 	// Getting node accessors
-	GetAccessors(node VertexId) NodesIterable
+	GetAccessors(node VertexId) VertexesIterable
 	
 	// Getting node predecessors
-	GetPredecessors(node VertexId) NodesIterable
+	GetPredecessors(node VertexId) VertexesIterable
 	
 	// Checking arrow existance between node1 and node2
 	//
@@ -90,19 +90,19 @@ type DirectedGraphArcsReader interface {
 }
 
 type DirectedGraphReader interface {
-	GraphNodesReader
+	GraphVertexesReader
 	DirectedGraphArcsReader
-	NodesIterable
+	VertexesIterable
 }
 
 // Interface representing directed graph
 type DirectedGraph interface {
-	GraphNodesWriter
-	GraphNodesReader
-	GraphNodesRemover
+	GraphVertexesWriter
+	GraphVertexesReader
+	GraphVertexesRemover
 
 	ConnectionsIterable
-	NodesIterable
+	VertexesIterable
 	DirectedGraphArcsWriter
 	DirectedGraphArcsRemover
 	DirectedGraphArcsReader
@@ -120,7 +120,7 @@ type UndirectedGraphEdgesReader interface {
 	CheckEdge(node1, node2 VertexId) bool
 
 	// Getting all nodes, connected to given one
-	GetNeighbours(node VertexId) NodesIterable
+	GetNeighbours(node VertexId) VertexesIterable
 }
 
 type UndirectedGraphEdgesWriter interface {
@@ -134,20 +134,20 @@ type UndirectedGraphEdgesRemover interface {
 }
 
 type UndirectedGraphReader interface {
-	GraphNodesReader
+	GraphVertexesReader
 	UndirectedGraphEdgesReader
 	ConnectionsIterable
-	NodesIterable
+	VertexesIterable
 }
 
 // Interface representing undirected graph
 type UndirectedGraph interface {
-	GraphNodesWriter
-	GraphNodesReader
-	GraphNodesRemover
+	GraphVertexesWriter
+	GraphVertexesReader
+	GraphVertexesRemover
 
 	ConnectionsIterable
-	NodesIterable
+	VertexesIterable
 
 	UndirectedGraphEdgesWriter
 	UndirectedGraphEdgesRemover
@@ -169,23 +169,23 @@ type MixedGraphConnectionsReader interface {
 type MixedGraphReader interface {
 	MixedGraphConnectionsReader
 
-	NodesIterable
-	GraphNodesReader
+	VertexesIterable
+	GraphVertexesReader
 }
 
 type MixedGraphWriter interface {
-	GraphNodesWriter
+	GraphVertexesWriter
 	UndirectedGraphEdgesWriter
 	DirectedGraphArcsWriter
 }
 
 type MixedGraph interface {
-	GraphNodesWriter
-	GraphNodesReader
-	GraphNodesRemover
+	GraphVertexesWriter
+	GraphVertexesReader
+	GraphVertexesRemover
 	
 	ConnectionsIterable
-	NodesIterable
+	VertexesIterable
 
 	UndirectedGraphEdgesWriter
 	UndirectedGraphEdgesRemover

@@ -27,13 +27,13 @@ func ConnectionsToGenericIter(connIter ConnectionsIterable) Iterable {
 }
 
 type nodesIterableHelper struct {
-	nodesIter NodesIterable
+	nodesIter VertexesIterable
 }
 
 func (helper *nodesIterableHelper) Iter() <-chan interface{} {
 	ch := make(chan interface{})
 	go func() {
-		for node := range helper.nodesIter.NodesIter() {
+		for node := range helper.nodesIter.VertexesIter() {
 			ch <- node
 		}
 		close(ch)
@@ -45,7 +45,7 @@ type nodesGenericIterableHelper struct {
 	iter Iterable
 }
 
-func (helper *nodesGenericIterableHelper) NodesIter() <-chan VertexId {
+func (helper *nodesGenericIterableHelper) VertexesIter() <-chan VertexId {
 	ch := make(chan VertexId)
 	go func() {
 		for node := range helper.iter.Iter() {
@@ -56,10 +56,10 @@ func (helper *nodesGenericIterableHelper) NodesIter() <-chan VertexId {
 	return ch
 }
 
-func CollectNodes(iter NodesIterable) []VertexId {
+func CollectVertexes(iter VertexesIterable) []VertexId {
 	res := make([]VertexId, 10)
 	i := 0
-	for node := range iter.NodesIter() {
+	for node := range iter.VertexesIter() {
 		if i==len(res) {
 			tmp := make([]VertexId, 2*i)
 			copy(tmp, res)
@@ -73,17 +73,17 @@ func CollectNodes(iter NodesIterable) []VertexId {
 }
 
 // Transform nodes iterable to generic iterable object.
-func NodesToGenericIter(nodesIter NodesIterable) Iterable {
+func VertexesToGenericIter(nodesIter VertexesIterable) Iterable {
 	return Iterable(&nodesIterableHelper{nodesIter:nodesIter})
 }
 
-func GenericToNodesIter(iter Iterable) NodesIterable {
-	return NodesIterable(&nodesGenericIterableHelper{iter:iter})
+func GenericToVertexesIter(iter Iterable) VertexesIterable {
+	return VertexesIterable(&nodesGenericIterableHelper{iter:iter})
 }
 
 // Copy all arcs from iterator to directed graph
 //
-// todo: add NodesIterable interface and copy all nodes before copying arcs
+// todo: add VertexesIterable interface and copy all nodes before copying arcs
 func CopyDirectedGraph(connIter ConnectionsIterable, gr DirectedGraphArcsWriter) {
 	// wheel := erx.NewError("Can't copy directed graph")
 	for arrow := range connIter.ConnectionsIter() {
@@ -108,7 +108,7 @@ func BuildDirectedGraph(gr DirectedGraph, connIterable ConnectionsIterable , isC
 
 // Copy all connections from iterator to mixed graph
 //
-// todo: add NodesIterable interface and copy all nodes before copying connections
+// todo: add VertexesIterable interface and copy all nodes before copying connections
 func CopyMixedGraph(from TypedConnectionsIterable, to MixedGraphWriter) {
 	for conn := range from.TypedConnectionsIter() {
 		switch conn.Type {

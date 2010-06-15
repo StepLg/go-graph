@@ -35,12 +35,12 @@ func NewDirectedGraphArcFilter(g DirectedGraphArcsReader, tail, head VertexId) *
 }
 
 // Getting node accessors
-func (filter *DirectedGraphArcsFilter) GetAccessors(node VertexId) NodesIterable {
+func (filter *DirectedGraphArcsFilter) GetAccessors(node VertexId) VertexesIterable {
 	iterator := func() <-chan VertexId {
 		ch := make(chan VertexId)
 		go func() {
 			AccessorsLoop: 
-			for accessor := range filter.DirectedGraphArcsReader.GetAccessors(node).NodesIter() {
+			for accessor := range filter.DirectedGraphArcsReader.GetAccessors(node).VertexesIter() {
 				if !filter.IsArcFiltering(node, accessor) {
 					ch <- accessor
 				}
@@ -50,15 +50,15 @@ func (filter *DirectedGraphArcsFilter) GetAccessors(node VertexId) NodesIterable
 		return ch
 	}
 	
-	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
+	return VertexesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Getting node predecessors
-func (filter *DirectedGraphArcsFilter) GetPredecessors(node VertexId) NodesIterable {
+func (filter *DirectedGraphArcsFilter) GetPredecessors(node VertexId) VertexesIterable {
 	iterator := func() <-chan VertexId {
 		ch := make(chan VertexId)
 		go func() {
-			for predecessor := range filter.DirectedGraphArcsReader.GetPredecessors(node).NodesIter() {
+			for predecessor := range filter.DirectedGraphArcsReader.GetPredecessors(node).VertexesIter() {
 				if !filter.IsArcFiltering(predecessor, node) {
 					ch <- predecessor
 				}
@@ -68,7 +68,7 @@ func (filter *DirectedGraphArcsFilter) GetPredecessors(node VertexId) NodesItera
 		return ch
 	}
 	
-	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
+	return VertexesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Checking arrow existance between node1 and node2
@@ -156,11 +156,11 @@ func NewUndirectedGraphEdgeFilter(g UndirectedGraphEdgesReader, tail, head Verte
 }
 
 // Getting node neighbours
-func (filter *UndirectedGraphEdgesFilter) GetNeighbours(node VertexId) NodesIterable {
+func (filter *UndirectedGraphEdgesFilter) GetNeighbours(node VertexId) VertexesIterable {
 	iterator := func() <-chan VertexId {
 		ch := make(chan VertexId)
 		go func() {
-			for neighbour := range filter.UndirectedGraphEdgesReader.GetNeighbours(node).NodesIter() {
+			for neighbour := range filter.UndirectedGraphEdgesReader.GetNeighbours(node).VertexesIter() {
 				if !filter.IsEdgeFiltering(node, neighbour) {
 					ch <- neighbour
 				}
@@ -170,7 +170,7 @@ func (filter *UndirectedGraphEdgesFilter) GetNeighbours(node VertexId) NodesIter
 		return ch
 	}
 	
-	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
+	return VertexesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 // Checking edge existance between node1 and node2

@@ -130,7 +130,7 @@ func BellmanFordSingleSourceSpec(c gospec.Context) {
 	gr := generateDirectedGraph1()
 	
 	marks := BellmanFordSingleSource(gr, VertexId(2), SimpleWeightFunc)
-	c.Expect(len(marks), Equals, gr.NodesCnt())
+	c.Expect(len(marks), Equals, gr.VertexesCnt())
 }
 
 func TestSearch(t *testing.T) {

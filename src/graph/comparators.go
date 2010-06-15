@@ -7,7 +7,7 @@ import (
 // Check two mixed graph equality
 func MixedGraphsEquals(gr1, gr2 MixedGraphReader) bool {
 	// checking nodes equality
-	if !GraphIncludeNodes(gr1, gr2) || !GraphIncludeNodes(gr2, gr1) {
+	if !GraphIncludeVertexes(gr1, gr2) || !GraphIncludeVertexes(gr2, gr1) {
 		return false
 	}
 	
@@ -46,8 +46,8 @@ func MixedGraphIncludeConnections(gr MixedGraphReader, connections TypedConnecti
 //
 // Warning!!! Due to channels issue 296: http://code.google.com/p/go/issues/detail?id=296
 // goroutine will block if not all nodes exists in graph
-func GraphIncludeNodes(gr NodesChecker, nodesToCheck NodesIterable) bool {
-	for node := range nodesToCheck.NodesIter() {
+func GraphIncludeVertexes(gr VertexesChecker, nodesToCheck VertexesIterable) bool {
+	for node := range nodesToCheck.VertexesIter() {
 		if !gr.CheckNode(node) {
 			return false
 		}
@@ -86,7 +86,7 @@ func GraphIncludeArcs(gr DirectedGraphReader, arcsToCheck ArcsIterable) bool {
 // Warning!!! Due to channels issue 296: http://code.google.com/p/go/issues/detail?id=296
 // goroutine will block if function result is false
 func DirectedGraphInclude(gr1, gr2 DirectedGraphReader) bool {
-	if !GraphIncludeNodes(gr1, gr2) {
+	if !GraphIncludeVertexes(gr1, gr2) {
 		return false
 	}
 	
@@ -102,7 +102,7 @@ func DirectedGraphInclude(gr1, gr2 DirectedGraphReader) bool {
 // Warning!!! Due to channels issue 296: http://code.google.com/p/go/issues/detail?id=296
 // goroutine will block if function result is false
 func UndirectedGraphInclude(gr1, gr2 DirectedGraphReader) bool {
-	if !GraphIncludeNodes(gr1, gr2) {
+	if !GraphIncludeVertexes(gr1, gr2) {
 		return false
 	}
 	
@@ -118,7 +118,7 @@ func UndirectedGraphInclude(gr1, gr2 DirectedGraphReader) bool {
 // Warning!!! Due to channels issue 296: http://code.google.com/p/go/issues/detail?id=296
 // goroutine will block if function result is false
 func DirectedGraphsEquals(gr1, gr2 DirectedGraphReader) bool {
-	if !GraphIncludeNodes(gr1, gr2) || !GraphIncludeNodes(gr2, gr1) {
+	if !GraphIncludeVertexes(gr1, gr2) || !GraphIncludeVertexes(gr2, gr1) {
 		return false
 	}
 	
@@ -134,7 +134,7 @@ func DirectedGraphsEquals(gr1, gr2 DirectedGraphReader) bool {
 // Warning!!! Due to channels issue 296: http://code.google.com/p/go/issues/detail?id=296
 // goroutine will block if function result is false
 func UndirectedGraphsEquals(gr1, gr2 UndirectedGraphReader) bool {
-	if !GraphIncludeNodes(gr1, gr2) || !GraphIncludeNodes(gr2, gr1) {
+	if !GraphIncludeVertexes(gr1, gr2) || !GraphIncludeVertexes(gr2, gr1) {
 		return false
 	}
 	

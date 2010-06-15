@@ -28,12 +28,12 @@ func ReduceDirectPaths(og DirectedGraphReader, rg DirectedGraphArcsWriter, stopF
 // and nodes==nil in function result.
 func TopologicalSort(gr DirectedGraphReader) (nodes []VertexId, hasCycles bool) {
 	hasCycles = false
-	nodes = make([]VertexId, gr.NodesCnt())
+	nodes = make([]VertexId, gr.VertexesCnt())
 	pos := len(nodes)
 	// map of node status. If node doesn't present in map - white color,
 	// node in map with false value - grey color, and with true value - black color
 	status := make(map[VertexId]bool)
-	for source := range gr.GetSources().NodesIter() {
+	for source := range gr.GetSources().VertexesIter() {
 		pos, hasCycles = topologicalSortHelper(gr, source, nodes[0:pos], status)
 		if hasCycles {
 			nodes = nil
@@ -58,7 +58,7 @@ func topologicalSortHelper(gr DirectedGraphReader, curNode VertexId, nodes []Ver
 	hasCycles = false
 	status[curNode] = false
 	pos = len(nodes)
-	for accessor := range gr.GetAccessors(curNode).NodesIter() {
+	for accessor := range gr.GetAccessors(curNode).VertexesIter() {
 		if isBlack, ok := status[accessor]; ok {
 			if !isBlack {
 				// cycle detected!
@@ -89,11 +89,11 @@ func topologicalSortHelper(gr DirectedGraphReader, curNode VertexId, nodes []Ver
 // topological order, etc.
 //
 // Warning! All accessors subgraphs of each source node MUST NOT intersect.
-// Nodes doesn't duplicate, so if some of sources have shared subgraph, then
+// Vertexes doesn't duplicate, so if some of sources have shared subgraph, then
 // nodes from this subgraph will appear only once after the first source node
 func TopologicalSortFromSources(gr DirectedGraphReader, sources []VertexId) (nodes []VertexId, hasCycles bool) {
 	hasCycles = false
-	nodes = make([]VertexId, gr.NodesCnt())
+	nodes = make([]VertexId, gr.VertexesCnt())
 	pos := len(nodes)
 	// map of node status. If node doesn't present in map - white color,
 	// node in map with false value - grey color, and with true value - black color
@@ -113,7 +113,7 @@ func TopologicalSortFromSources(gr DirectedGraphReader, sources []VertexId) (nod
 func splitMixedGraph_helper(node VertexId, color int, gr MixedGraphReader, nodesColor map[VertexId]int) {
 	nodesColor[node] = color
 	// todo: neighbours and accesors as iterators
-	for next := range gr.GetNeighbours(node).NodesIter() {
+	for next := range gr.GetNeighbours(node).VertexesIter() {
 		if nextColor, ok := nodesColor[next]; ok {
 			if nextColor != color {
 				// change all 'nextColor' nodes to 'color' nodes
@@ -127,7 +127,7 @@ func splitMixedGraph_helper(node VertexId, color int, gr MixedGraphReader, nodes
 			splitMixedGraph_helper(next, color, gr, nodesColor)
 		}
 	}
-	for next := range gr.GetAccessors(node).NodesIter() {
+	for next := range gr.GetAccessors(node).VertexesIter() {
 		if nextColor, ok := nodesColor[next]; ok {
 			if nextColor != color {
 				// change all 'nextColor' nodes to 'color' nodes
@@ -151,7 +151,7 @@ func SplitMixedGraph(gr MixedGraphReader) []MixedGraph {
 	nodesColor := make(map[VertexId]int)
 	curColor := 0
 	
-	for curNode := range gr.GetSources().NodesIter() {
+	for curNode := range gr.GetSources().VertexesIter() {
 		if _, ok := nodesColor[curNode]; ok {
 			// node already visited
 			continue
@@ -174,7 +174,7 @@ func SplitMixedGraph(gr MixedGraphReader) []MixedGraph {
 		result[color] = NewMixedMatrix(nodesCnt)
 	}
 	
-	for node := range gr.NodesIter() {
+	for node := range gr.VertexesIter() {
 		result[nodesColor[node]].AddNode(node)
 	}
 	

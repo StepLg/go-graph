@@ -24,9 +24,9 @@ func (g *UndirectedMap) ConnectionsIter() <-chan Connection {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// NodesIterable
+// VertexesIterable
 
-func (g *UndirectedMap) NodesIter() <-chan VertexId {
+func (g *UndirectedMap) VertexesIter() <-chan VertexId {
 	ch := make(chan VertexId)
 	go func() {
 		for from, _ := range g.edges {
@@ -38,7 +38,7 @@ func (g *UndirectedMap) NodesIter() <-chan VertexId {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// NodesChecker
+// VertexesChecker
 
 func (g *UndirectedMap) CheckNode(node VertexId) (exists bool) {
 	_, exists = g.edges[node]
@@ -46,7 +46,7 @@ func (g *UndirectedMap) CheckNode(node VertexId) (exists bool) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// UndirectedGraphNodesWriter
+// UndirectedGraphVertexesWriter
 
 // Adding single node to graph
 func (g *UndirectedMap) AddNode(node VertexId) {
@@ -66,7 +66,7 @@ func (g *UndirectedMap) AddNode(node VertexId) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// GraphNodesRemover
+// GraphVertexesRemover
 
 func (g *UndirectedMap) RemoveNode(node VertexId) {
 	makeError := func(err interface{}) (res erx.Error) {
@@ -80,8 +80,8 @@ func (g *UndirectedMap) RemoveNode(node VertexId) {
 	}
 	
 	g.edges[node] = nil, false
-	for _, connectedNodes := range g.edges {
-		connectedNodes[node] = false, false
+	for _, connectedVertexes := range g.edges {
+		connectedVertexes[node] = false, false
 	}
 	
 	return
@@ -130,12 +130,12 @@ func (g *UndirectedMap) RemoveEdge(from, to VertexId) {
 		res.AddV("node 2", to)
 		return
 	}
-	connectedNodes, ok := g.edges[from]
+	connectedVertexes, ok := g.edges[from]
 	if !ok {
 		panic(makeError(erx.NewError("First node doesn't exists")))
 	}
 	
-	if _, ok = connectedNodes[to]; ok {
+	if _, ok = connectedVertexes[to]; ok {
 		panic(makeError(erx.NewError("Second node doesn't exists")))
 	}
 	
@@ -149,7 +149,7 @@ func (g *UndirectedMap) RemoveEdge(from, to VertexId) {
 ///////////////////////////////////////////////////////////////////////////////
 // UndirectedGraphReader
 
-func (g *UndirectedMap) NodesCnt() int {
+func (g *UndirectedMap) VertexesCnt() int {
 	return len(g.edges)
 }
 
@@ -158,7 +158,7 @@ func (g *UndirectedMap) EdgesCnt() int {
 }
 
 // Getting node predecessors
-func (g *UndirectedMap) GetNeighbours(node VertexId) NodesIterable {
+func (g *UndirectedMap) GetNeighbours(node VertexId) VertexesIterable {
 	iterator := func() <-chan VertexId {
 		ch := make(chan VertexId)
 		go func() {
@@ -174,7 +174,7 @@ func (g *UndirectedMap) GetNeighbours(node VertexId) NodesIterable {
 		return ch
 	}
 	
-	return NodesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
+	return VertexesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
 }
 
 func (g *UndirectedMap) CheckEdge(from, to VertexId) (isExist bool) {
@@ -185,7 +185,7 @@ func (g *UndirectedMap) CheckEdge(from, to VertexId) (isExist bool) {
 		return
 	}
 
-	connectedNodes, ok := g.edges[from]
+	connectedVertexes, ok := g.edges[from]
 	if !ok {
 		panic(makeError(erx.NewError("Fist node doesn't exist.")))
 	}
@@ -194,7 +194,7 @@ func (g *UndirectedMap) CheckEdge(from, to VertexId) (isExist bool) {
 		panic(makeError(erx.NewError("Second node doesn't exist.")))
 	}
 	
-	_, isExist = connectedNodes[to]
+	_, isExist = connectedVertexes[to]
 	
 	return
 }
@@ -202,8 +202,8 @@ func (g *UndirectedMap) CheckEdge(from, to VertexId) (isExist bool) {
 func (g *UndirectedMap) EdgesIter() <-chan Connection {
 	ch := make(chan Connection)
 	go func() {
-		for from, connectedNodes := range g.edges {
-			for to, _ := range connectedNodes {
+		for from, connectedVertexes := range g.edges {
+			for to, _ := range connectedVertexes {
 				if from<to {
 					// each edge has a duplicate, so we need to 
 					// push only one edge to channel
