@@ -7,6 +7,17 @@ import (
 	"github.com/StepLg/go-erx/src/erx"
 )
 
+// Path mark, set by some of search algorithms.
+type VertexPathMark struct {
+	Weight float64 // Weight from one of source nodes to current node.
+	PrevVertex VertexId // Previous node in path.
+}
+
+// Path weight from one of sources to node in map.
+//
+// Used as a result by some of minimal path search algorithms.
+// To get real path from this marks map use PathFromMarks function. 
+type PathMarks map[VertexId]*VertexPathMark
 
 type ConnectionWeightFunc func(head, tail VertexId) float64
 
@@ -16,47 +27,90 @@ func SimpleWeightFunc(head, tail VertexId) float64 {
 	return float64(1.0)
 }
 
-type AllNeighboursExtractor interface {
-	GetAllNeighbours(node VertexId) VertexesIterable
+type OutNeighboursExtractor interface {
+	GetOutNeighbours(node VertexId) VertexesIterable
 }
 
-type allDirectedNeighboursExtractor struct {
+type dgraphOutNeighboursExtractor struct {
 	dgraph DirectedGraphArcsReader
 }
 
-func (e *allDirectedNeighboursExtractor) GetAllNeighbours(node VertexId) VertexesIterable {
+func (e *dgraphOutNeighboursExtractor) GetOutNeighbours(node VertexId) VertexesIterable {
 	return e.dgraph.GetAccessors(node)
 }
 
-func NewDirectedNeighboursExtractor(gr DirectedGraphArcsReader) AllNeighboursExtractor {
-	return AllNeighboursExtractor(&allDirectedNeighboursExtractor{dgraph:gr})
+func NewDgraphOutNeighboursExtractor(gr DirectedGraphArcsReader) OutNeighboursExtractor {
+	return OutNeighboursExtractor(&dgraphOutNeighboursExtractor{dgraph:gr})
 }
 
-type allUndirectedNeighboursExtractor struct {
+type ugraphOutNeighboursExtractor struct {
 	ugraph UndirectedGraphEdgesReader
 }
 
-func (e *allUndirectedNeighboursExtractor) GetAllNeighbours(node VertexId) VertexesIterable {
+func (e *ugraphOutNeighboursExtractor) GetOutNeighbours(node VertexId) VertexesIterable {
 	return e.ugraph.GetNeighbours(node)
 }
 
-func NewUndirectedNeighboursExtractor(gr UndirectedGraphEdgesReader) AllNeighboursExtractor {
-	return AllNeighboursExtractor(&allUndirectedNeighboursExtractor{ugraph:gr})
+func NewUgraphOutNeighboursExtractor(gr UndirectedGraphEdgesReader) OutNeighboursExtractor {
+	return OutNeighboursExtractor(&ugraphOutNeighboursExtractor{ugraph:gr})
 }
 
-type allMixedNeighboursExtractor struct {
+type mgraphOutNeighboursExtractor struct {
 	mgraph MixedGraphConnectionsReader
 }
 
-func (e *allMixedNeighboursExtractor) GetAllNeighbours(node VertexId) VertexesIterable {
+func (e *mgraphOutNeighboursExtractor) GetOutNeighbours(node VertexId) VertexesIterable {
 	return GenericToVertexesIter(Chain(&[...]Iterable{
 		VertexesToGenericIter(e.mgraph.GetAccessors(node)), 
 		VertexesToGenericIter(e.mgraph.GetNeighbours(node)),
 	}))
 }
 
-func NewMixedNeighboursExtractor(gr MixedGraphConnectionsReader) AllNeighboursExtractor {
-	return AllNeighboursExtractor(&allMixedNeighboursExtractor{mgraph:gr})
+func NewMgraphOutNeighboursExtractor(gr MixedGraphConnectionsReader) OutNeighboursExtractor {
+	return OutNeighboursExtractor(&mgraphOutNeighboursExtractor{mgraph:gr})
+}
+
+type InNeighboursExtractor interface {
+	GetInNeighbours(node VertexId) VertexesIterable
+}
+
+type dgraphInNeighboursExtractor struct {
+	dgraph DirectedGraphArcsReader
+}
+
+func (e *dgraphInNeighboursExtractor) GetInNeighbours(node VertexId) VertexesIterable {
+	return e.dgraph.GetPredecessors(node)
+}
+
+func NewDgraphInNeighboursExtractor(gr DirectedGraphArcsReader) InNeighboursExtractor {
+	return InNeighboursExtractor(&dgraphInNeighboursExtractor{dgraph:gr})
+}
+
+type ugraphInNeighboursExtractor struct {
+	ugraph UndirectedGraphEdgesReader
+}
+
+func (e *ugraphInNeighboursExtractor) GetInNeighbours(node VertexId) VertexesIterable {
+	return e.ugraph.GetNeighbours(node)
+}
+
+func NewUgraphInNeighboursExtractor(gr UndirectedGraphEdgesReader) InNeighboursExtractor {
+	return InNeighboursExtractor(&ugraphInNeighboursExtractor{ugraph:gr})
+}
+
+type mgraphInNeighboursExtractor struct {
+	mgraph MixedGraphConnectionsReader
+}
+
+func (e *mgraphInNeighboursExtractor) GetInNeighbours(node VertexId) VertexesIterable {
+	return GenericToVertexesIter(Chain(&[...]Iterable{
+		VertexesToGenericIter(e.mgraph.GetPredecessors(node)), 
+		VertexesToGenericIter(e.mgraph.GetNeighbours(node)),
+	}))
+}
+
+func NewMgraphInNeighboursExtractor(gr MixedGraphConnectionsReader) InNeighboursExtractor {
+	return InNeighboursExtractor(&mgraphInNeighboursExtractor{mgraph:gr})
 }
 
 // Generic check path algorithm for all graph types
@@ -69,7 +123,7 @@ func NewMixedNeighboursExtractor(gr MixedGraphConnectionsReader) AllNeighboursEx
 // weightFunction calculates total path weight
 // 
 // As a result CheckPathDijkstra returns total weight of path, if it exists.
-func CheckPathDijkstra(neighboursExtractor AllNeighboursExtractor, from, to VertexId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) (float64, bool) {
+func CheckPathDijkstra(neighboursExtractor OutNeighboursExtractor, from, to VertexId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) (float64, bool) {
 	defer func() {
 		if e:=recover(); e!=nil {
 			err := erx.NewSequent("Check path graph with Dijkstra algorithm", e)
@@ -90,7 +144,7 @@ func CheckPathDijkstra(neighboursExtractor AllNeighboursExtractor, from, to Vert
 		curNode, curWeight := q.Next()
 		curWeight = -curWeight // because we inverse weight in priority queue
 	
-		for nextNode := range neighboursExtractor.GetAllNeighbours(curNode).VertexesIter() {
+		for nextNode := range neighboursExtractor.GetOutNeighbours(curNode).VertexesIter() {
 			arcWeight := weightFunction(curNode, nextNode)
 			if arcWeight < 0 {
 				err := erx.NewError("Negative weight detected")
@@ -115,28 +169,28 @@ func CheckPathDijkstra(neighboursExtractor AllNeighboursExtractor, from, to Vert
 type CheckDirectedPath func(gr DirectedGraphArcsReader, from, to VertexId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool
 
 func CheckDirectedPathDijkstra(gr DirectedGraphArcsReader, from, to VertexId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool {
-	_, pathExists := CheckPathDijkstra(NewDirectedNeighboursExtractor(gr), from, to, stopFunc, weightFunction)
+	_, pathExists := CheckPathDijkstra(NewDgraphOutNeighboursExtractor(gr), from, to, stopFunc, weightFunction)
 	return pathExists
 }
 
 type CheckUndirectedPath func(gr UndirectedGraphEdgesReader, from, to VertexId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool
 
 func CheckUndirectedPathDijkstra(gr UndirectedGraphEdgesReader, from, to VertexId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool {
-	_, pathExists := CheckPathDijkstra(NewUndirectedNeighboursExtractor(gr), from, to, stopFunc, weightFunction)
+	_, pathExists := CheckPathDijkstra(NewUgraphOutNeighboursExtractor(gr), from, to, stopFunc, weightFunction)
 	return pathExists
 }
 
 type CheckMixedPath func(gr MixedGraphConnectionsReader, from, to VertexId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool
 
 func CheckMixedPathDijkstra(gr MixedGraphConnectionsReader, from, to VertexId, stopFunc StopFunc, weightFunction ConnectionWeightFunc) bool {
-	_, pathExists := CheckPathDijkstra(NewMixedNeighboursExtractor(gr), from, to, stopFunc, weightFunction)
+	_, pathExists := CheckPathDijkstra(NewMgraphOutNeighboursExtractor(gr), from, to, stopFunc, weightFunction)
 	return pathExists
 }
 
 // Get all paths from one node to another
 //
 // This algorithms doesn't take any loops into paths.
-func GetAllPaths(neighboursExtractor AllNeighboursExtractor, from, to VertexId) <-chan []VertexId {
+func GetAllPaths(neighboursExtractor OutNeighboursExtractor, from, to VertexId) <-chan []VertexId {
 	curPath := make([]VertexId, 10)
 	nodesStatus := make(map[VertexId]bool)
 	ch := make(chan []VertexId)
@@ -144,7 +198,7 @@ func GetAllPaths(neighboursExtractor AllNeighboursExtractor, from, to VertexId) 
 	return ch
 }
 
-func getAllPaths_helper(neighboursExtractor AllNeighboursExtractor, from, to VertexId, curPath []VertexId, pathPos int, nodesStatus map[VertexId]bool, ch chan []VertexId, closeChannel bool) {
+func getAllPaths_helper(neighboursExtractor OutNeighboursExtractor, from, to VertexId, curPath []VertexId, pathPos int, nodesStatus map[VertexId]bool, ch chan []VertexId, closeChannel bool) {
 	if _, ok := nodesStatus[from]; ok {
 		return
 	}
@@ -167,7 +221,7 @@ func getAllPaths_helper(neighboursExtractor AllNeighboursExtractor, from, to Ver
 	}
 	nodesStatus[from] = true
 	
-	for nextNode := range neighboursExtractor.GetAllNeighbours(from).VertexesIter() {
+	for nextNode := range neighboursExtractor.GetOutNeighbours(from).VertexesIter() {
 		getAllPaths_helper(neighboursExtractor, nextNode, to, curPath, pathPos+1, nodesStatus, ch, false)
 	}
 	
@@ -180,46 +234,144 @@ func getAllPaths_helper(neighboursExtractor AllNeighboursExtractor, from, to Ver
 }
 
 func GetAllDirectedPaths(gr DirectedGraphArcsReader, from, to VertexId) <-chan []VertexId {
-	return GetAllPaths(NewDirectedNeighboursExtractor(gr), from, to)
+	return GetAllPaths(NewDgraphOutNeighboursExtractor(gr), from, to)
 }
 
 func GetAllUndirectedPaths(gr UndirectedGraphEdgesReader, from, to VertexId) <-chan []VertexId {
-	return GetAllPaths(NewUndirectedNeighboursExtractor(gr), from, to)
+	return GetAllPaths(NewUgraphOutNeighboursExtractor(gr), from, to)
 }
 
 func GetAllMixedPaths(gr MixedGraphConnectionsReader, from, to VertexId) <-chan []VertexId {
-	return GetAllPaths(NewMixedNeighboursExtractor(gr), from, to)
+	return GetAllPaths(NewMgraphOutNeighboursExtractor(gr), from, to)
 }
 
-// Compute single-source shortest paths with Bellman-Ford algorithm
+// Retrieving path from path marks.
+func PathFromMarks(marks PathMarks, destination VertexId) Vertexes {
+	defer func() {
+		if e:=recover(); e!=nil {
+			err := erx.NewSequent("Retrieving path from path marks.", e)
+			err.AddV("marks", marks)
+			err.AddV("destination", destination)
+			panic(err)
+		}
+	}()
+	destInfo, ok := marks[destination]
+	if !ok || destInfo.Weight==math.MaxFloat64 {
+		// no path from any source to destination
+		return nil
+	}
+	
+	curVertexInfo := destInfo
+	path := make(Vertexes, 10)
+	curPathPos := 0
+	path[curPathPos] = destination
+	curPathPos++
+	for curVertexInfo.Weight > 0.0 {
+		if len(path)==curPathPos {
+			// reallocate memory for path
+			tmp := make(Vertexes, 2*curPathPos)
+			copy(tmp, path)
+			path = tmp
+		}
+		path[curPathPos] = curVertexInfo.PrevVertex
+		curPathPos++
+		var ok bool
+		curVertexInfo, ok = marks[curVertexInfo.PrevVertex]
+		if !ok {
+			err := erx.NewError("Can't find path mark info for vertex in path.")
+			err.AddV("vertex", curVertexInfo.PrevVertex)
+			err.AddV("cur path", path)
+			panic(err)
+		}
+	}
+	
+	path = path[0:curPathPos]
+	
+	// reversing path
+	pathLen := len(path)
+	for i:=0; i<pathLen/2; i++ {
+		path[i], path[pathLen-i-1] = path[pathLen-i-1], path[i]
+	}
+	
+	return path
+}
+
+
+// Compute multi-source shortest paths with Bellman-Ford algorithm
 //
 // Returs map, contains all nodes from graph. If there is no path from source to node in map
 // then value for this node is math.MaxFloat64
 //
 // Returns nil if there are negative cycles. 
-func BellmanFordSingleSource(gr DirectedGraphReader, source VertexId, weight ConnectionWeightFunc) map[VertexId]float64 {
-	marks := make(map[VertexId]float64)
-	for node := range gr.VertexesIter() {
-		marks[node] = math.MaxFloat64
+func BellmanFordMultiSource(gr DirectedGraphReader, sources Vertexes, weightFunc ConnectionWeightFunc) PathMarks {
+	marks := make(PathMarks)
+	for vertex := range gr.VertexesIter() {
+		marks[vertex] = &VertexPathMark{Weight: math.MaxFloat64, PrevVertex: 0}
 	}
 	
-	marks[source] = 0
+	for _, vertex := range sources {
+		marks[vertex].Weight = 0.0
+	}
 	
 	nodesCnt := gr.Order()
 	for i:=0; i<nodesCnt; i++ {
 		for conn := range gr.ArcsIter() {
-			possibleWeight := marks[conn.Tail] + weight(conn.Tail, conn.Head)
-			if marks[conn.Head] > possibleWeight {
-				marks[conn.Head] = possibleWeight
+			possibleWeight := marks[conn.Tail].Weight + weightFunc(conn.Tail, conn.Head)
+			if marks[conn.Head].Weight > possibleWeight {
+				marks[conn.Head].PrevVertex = conn.Tail
+				marks[conn.Head].Weight = possibleWeight
 			}
 		}
 	}
 	
 	for conn := range gr.ArcsIter() {
-		if marks[conn.Head] > marks[conn.Tail] + weight(conn.Tail, conn.Head) {
+		if marks[conn.Head].Weight > marks[conn.Tail].Weight + weightFunc(conn.Tail, conn.Head) {
 			return nil
 		}
 	}
 	
 	return marks
+}
+
+func BellmanFordSingleSource(gr DirectedGraphReader, source VertexId, weightFunc ConnectionWeightFunc) PathMarks {
+	return BellmanFordMultiSource(gr, Vertexes{source}, weightFunc)
+}
+
+// Compute multi-source shortest paths with Bellman-Ford algorithm
+//
+// Returs map, contains all accessiable vertexes from sources vertexes with
+// minimal path weight.
+//
+// Returns nil if there are negative cycles. 
+func BellmanFordLightMultiSource(gr OutNeighboursExtractor, sources Vertexes, weightFunc ConnectionWeightFunc) PathMarks {
+	marks := make(PathMarks)
+	for _, vertex := range sources {
+		marks[vertex] = &VertexPathMark{Weight: 0.0, PrevVertex: 0}
+	}
+	
+	for i:=0; i<len(marks); i++ {
+		for vertex, vertexInfo := range marks {
+			for nextVertex := range gr.GetOutNeighbours(vertex).VertexesIter() {
+				possibleWeight := vertexInfo.Weight + weightFunc(vertex, nextVertex)
+				if nextVertexInfo, ok := marks[nextVertex]; !ok || nextVertexInfo.Weight > possibleWeight {
+					marks[vertex] = &VertexPathMark{Weight: possibleWeight, PrevVertex: vertex}
+				}
+			}
+		}
+	}
+	
+	// checking for negative cycles
+	for vertex, vertexInfo := range marks {
+		for nextVertex := range gr.GetOutNeighbours(vertex).VertexesIter() {
+			if marks[nextVertex].Weight > vertexInfo.Weight + weightFunc(vertex, nextVertex) {
+				return nil
+			}
+		}
+	}
+	
+	return marks
+}
+
+func BellmanFordLightSingleSource(gr OutNeighboursExtractor, source VertexId, weightFunc ConnectionWeightFunc) PathMarks {
+	return BellmanFordLightMultiSource(gr, Vertexes{source}, weightFunc)
 }

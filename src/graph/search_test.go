@@ -131,6 +131,10 @@ func BellmanFordSingleSourceSpec(c gospec.Context) {
 	
 	marks := BellmanFordSingleSource(gr, VertexId(2), SimpleWeightFunc)
 	c.Expect(len(marks), Equals, gr.Order())
+
+	c.Expect(PathFromMarks(marks, VertexId(6)), ContainsExactly, Values(VertexId(2), VertexId(6)))
+	c.Expect(PathFromMarks(marks, VertexId(5)), ContainsExactly, Values(VertexId(2), VertexId(4), VertexId(5)))
+	c.Expect(PathFromMarks(marks, VertexId(1)), ContainsExactly, Values())
 }
 
 func TestSearch(t *testing.T) {
