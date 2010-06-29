@@ -533,7 +533,11 @@ func (gr *MixedMatrix) CheckEdgeType(tail VertexId, head VertexId) MixedConnecti
 	}()
 	
 	conn := gr.getConnectionId(tail, head, false)
-	return gr.nodes[conn]
+	connType := gr.nodes[conn]
+	if connType==CT_DIRECTED && tail>head {
+		return CT_DIRECTED_REVERSED
+	}
+	return connType
 }
 
 func (g *MixedMatrix) ConnectionsCnt() int {

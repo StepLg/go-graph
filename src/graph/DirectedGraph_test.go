@@ -165,7 +165,7 @@ func DirectedGraphSpec(c gospec.Context, graphCreator func() DirectedGraph) {
 	})
 }
 
-func TestDirectedMapSpec(t *testing.T) {
+func TestDirectedGraphSpec(t *testing.T) {
 	r := gospec.NewRunner()
 
 	// paramenerized test creator
