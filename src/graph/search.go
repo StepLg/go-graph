@@ -1,7 +1,6 @@
 package graph
 
 import (
-	. "exp/iterable"
 	"math"
 
 	"github.com/StepLg/go-erx/src/erx"
@@ -25,92 +24,6 @@ type StopFunc func(node VertexId, sumWeight float64) bool
 
 func SimpleWeightFunc(head, tail VertexId) float64 {
 	return float64(1.0)
-}
-
-type OutNeighboursExtractor interface {
-	GetOutNeighbours(node VertexId) VertexesIterable
-}
-
-type dgraphOutNeighboursExtractor struct {
-	dgraph DirectedGraphArcsReader
-}
-
-func (e *dgraphOutNeighboursExtractor) GetOutNeighbours(node VertexId) VertexesIterable {
-	return e.dgraph.GetAccessors(node)
-}
-
-func NewDgraphOutNeighboursExtractor(gr DirectedGraphArcsReader) OutNeighboursExtractor {
-	return OutNeighboursExtractor(&dgraphOutNeighboursExtractor{dgraph:gr})
-}
-
-type ugraphOutNeighboursExtractor struct {
-	ugraph UndirectedGraphEdgesReader
-}
-
-func (e *ugraphOutNeighboursExtractor) GetOutNeighbours(node VertexId) VertexesIterable {
-	return e.ugraph.GetNeighbours(node)
-}
-
-func NewUgraphOutNeighboursExtractor(gr UndirectedGraphEdgesReader) OutNeighboursExtractor {
-	return OutNeighboursExtractor(&ugraphOutNeighboursExtractor{ugraph:gr})
-}
-
-type mgraphOutNeighboursExtractor struct {
-	mgraph MixedGraphConnectionsReader
-}
-
-func (e *mgraphOutNeighboursExtractor) GetOutNeighbours(node VertexId) VertexesIterable {
-	return GenericToVertexesIter(Chain(&[...]Iterable{
-		VertexesToGenericIter(e.mgraph.GetAccessors(node)), 
-		VertexesToGenericIter(e.mgraph.GetNeighbours(node)),
-	}))
-}
-
-func NewMgraphOutNeighboursExtractor(gr MixedGraphConnectionsReader) OutNeighboursExtractor {
-	return OutNeighboursExtractor(&mgraphOutNeighboursExtractor{mgraph:gr})
-}
-
-type InNeighboursExtractor interface {
-	GetInNeighbours(node VertexId) VertexesIterable
-}
-
-type dgraphInNeighboursExtractor struct {
-	dgraph DirectedGraphArcsReader
-}
-
-func (e *dgraphInNeighboursExtractor) GetInNeighbours(node VertexId) VertexesIterable {
-	return e.dgraph.GetPredecessors(node)
-}
-
-func NewDgraphInNeighboursExtractor(gr DirectedGraphArcsReader) InNeighboursExtractor {
-	return InNeighboursExtractor(&dgraphInNeighboursExtractor{dgraph:gr})
-}
-
-type ugraphInNeighboursExtractor struct {
-	ugraph UndirectedGraphEdgesReader
-}
-
-func (e *ugraphInNeighboursExtractor) GetInNeighbours(node VertexId) VertexesIterable {
-	return e.ugraph.GetNeighbours(node)
-}
-
-func NewUgraphInNeighboursExtractor(gr UndirectedGraphEdgesReader) InNeighboursExtractor {
-	return InNeighboursExtractor(&ugraphInNeighboursExtractor{ugraph:gr})
-}
-
-type mgraphInNeighboursExtractor struct {
-	mgraph MixedGraphConnectionsReader
-}
-
-func (e *mgraphInNeighboursExtractor) GetInNeighbours(node VertexId) VertexesIterable {
-	return GenericToVertexesIter(Chain(&[...]Iterable{
-		VertexesToGenericIter(e.mgraph.GetPredecessors(node)), 
-		VertexesToGenericIter(e.mgraph.GetNeighbours(node)),
-	}))
-}
-
-func NewMgraphInNeighboursExtractor(gr MixedGraphConnectionsReader) InNeighboursExtractor {
-	return InNeighboursExtractor(&mgraphInNeighboursExtractor{mgraph:gr})
 }
 
 // Generic check path algorithm for all graph types

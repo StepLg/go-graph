@@ -15,6 +15,7 @@ GOFILES=               \
 	UndirectedMap.go   \
 	MixedMatrix.go     \
 	MixedMap.go        \
+	neighbours_extractor.go \
 	iterators.go
  
 include $(GOROOT)/src/Make.pkg
