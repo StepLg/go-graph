@@ -80,36 +80,6 @@ func topologicalSortHelper(gr DirectedGraphReader, curNode VertexId, nodes []Ver
 	return
 }
 
-// Topological sort all accessors of source nodes
-//
-// nodes slice is copy of sources slice with all accessors of each source. 
-// First element of nodes slice is first element of sources slice and then
-// there are all accessors of this element in topological order. Then there
-// is second node from sources slice and all it's accessors in 
-// topological order, etc.
-//
-// Warning! All accessors subgraphs of each source node MUST NOT intersect.
-// Vertexes doesn't duplicate, so if some of sources have shared subgraph, then
-// nodes from this subgraph will appear only once after the first source node
-func TopologicalSortFromSources(gr DirectedGraphReader, sources []VertexId) (nodes []VertexId, hasCycles bool) {
-	hasCycles = false
-	nodes = make([]VertexId, gr.Order())
-	pos := len(nodes)
-	// map of node status. If node doesn't present in map - white color,
-	// node in map with false value - grey color, and with true value - black color
-	status := make(map[VertexId]bool)
-	for _, source := range sources {
-		pos, hasCycles = topologicalSortHelper(gr, source, nodes[0:pos], status)
-		if hasCycles {
-			nodes = nil
-			return
-		}
-	}
-	
-	nodes = nodes[pos:]
-	return
-}
-
 func splitMixedGraph_helper(node VertexId, color int, gr MixedGraphReader, nodesColor map[VertexId]int) {
 	nodesColor[node] = color
 	// todo: neighbours and accesors as iterators
