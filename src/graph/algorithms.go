@@ -5,6 +5,10 @@ import (
 )
 
 // Copy graph og to rg except args i->j, where exists non direct path i->...->j
+//
+// Graph rg contains all vertexes from original graph gr and arcs i->j, if there
+// doesn't exist path in original graph from i to j, which contains at least
+// 3 vertexes
 func ReduceDirectPaths(og DirectedGraphReader, rg DirectedGraphArcsWriter, stopFunc func(from, to VertexId, weight float64) bool) {
 	var checkStopFunc StopFunc
 	for conn := range og.ArcsIter() {
