@@ -6,33 +6,6 @@ import (
 	. "github.com/orfjackal/gospec/src/gospec"
 )
 
-func generateMixedGraph1() MixedGraph {
-	gr := NewMixedMatrix(6)
-	gr.AddArc(1, 2)
-	gr.AddArc(2, 3)
-	gr.AddArc(3, 4)
-	gr.AddArc(2, 4)
-	gr.AddArc(4, 5)
-	gr.AddArc(1, 6)
-	gr.AddArc(2, 6)
-	gr.AddEdge(6, 4)
-
-	return gr	
-}
-
-func generateDirectedGraph1() DirectedGraph {
-	gr := NewDirectedMap()
-	gr.AddArc(1, 2)
-	gr.AddArc(2, 3)
-	gr.AddArc(3, 4)
-	gr.AddArc(2, 4)
-	gr.AddArc(4, 5)
-	gr.AddArc(1, 6)
-	gr.AddArc(2, 6)
-	
-	return gr
-}
-
 func CheckDirectedPathSpec(c gospec.Context, checkPathFunction CheckDirectedPath) {
 	gr := generateDirectedGraph1()
 	

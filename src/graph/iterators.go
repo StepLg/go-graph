@@ -81,17 +81,6 @@ func GenericToVertexesIter(iter Iterable) VertexesIterable {
 	return VertexesIterable(&nodesGenericIterableHelper{iter:iter})
 }
 
-// Copy all arcs from iterator to directed graph
-//
-// todo: add VertexesIterable interface and copy all nodes before copying arcs
-func CopyDirectedGraph(connIter ConnectionsIterable, gr DirectedGraphArcsWriter) {
-	// wheel := erx.NewError("Can't copy directed graph")
-	for arrow := range connIter.ConnectionsIter() {
-		gr.AddArc(arrow.Tail, arrow.Head)
-	}
-	return
-}
-
 // Build directed graph from connecection iterator with order function
 //
 // For all connections from iterator check isCorrectOrder function 
@@ -104,6 +93,28 @@ func BuildDirectedGraph(gr DirectedGraph, connIterable ConnectionsIterable , isC
 			gr.AddArc(arr.Head, arr.Tail)
 		}
 	}
+}
+
+// Copy all arcs from iterator to directed graph
+//
+// todo: add VertexesIterable interface and copy all nodes before copying arcs
+func CopyDirectedGraph(connIter ConnectionsIterable, gr DirectedGraphArcsWriter) {
+	// wheel := erx.NewError("Can't copy directed graph")
+	for arrow := range connIter.ConnectionsIter() {
+		gr.AddArc(arrow.Tail, arrow.Head)
+	}
+	return
+}
+
+// Copy all arcs from iterator to directed graph
+//
+// todo: add VertexesIterable interface and copy all nodes before copying arcs
+func CopyUndirectedGraph(connIter ConnectionsIterable, gr UndirectedGraphEdgesWriter) {
+	// wheel := erx.NewError("Can't copy directed graph")
+	for arrow := range connIter.ConnectionsIter() {
+		gr.AddEdge(arrow.Tail, arrow.Head)
+	}
+	return
 }
 
 // Copy all connections from iterator to mixed graph
