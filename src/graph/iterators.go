@@ -21,9 +21,29 @@ func (helper *connectionsIterableHelper) Iter() <-chan interface{} {
 	return ch
 }
 
+type connectionsGenericIterableHelper struct {
+	iter Iterable
+}
+
+func (helper *connectionsGenericIterableHelper) ConnectionsIter() <-chan Connection {
+	ch := make(chan Connection)
+	go func() {
+		for arr := range helper.iter.Iter() {
+			ch <- arr.(Connection)
+		}
+		close(ch)
+	}()
+	return ch
+}
+
 // Transform connections iterable to generic iterable object.
 func ConnectionsToGenericIter(connIter ConnectionsIterable) Iterable {
 	return Iterable(&connectionsIterableHelper{connIter:connIter})
+}
+
+// Transform generic iterable to connections iterable object.
+func GenericToConnectionsIter(iter Iterable) ConnectionsIterable {
+	return ConnectionsIterable(&connectionsGenericIterableHelper{iter:iter})
 }
 
 type nodesIterableHelper struct {
@@ -56,6 +76,17 @@ func (helper *nodesGenericIterableHelper) VertexesIter() <-chan VertexId {
 	return ch
 }
 
+// Transform vertexes iterable to generic iterable object.
+func VertexesToGenericIter(nodesIter VertexesIterable) Iterable {
+	return Iterable(&nodesIterableHelper{nodesIter:nodesIter})
+}
+
+// Transform generic iterator to vertexes iterable
+func GenericToVertexesIter(iter Iterable) VertexesIterable {
+	return VertexesIterable(&nodesGenericIterableHelper{iter:iter})
+}
+
+// Collect all vertexes from iterator to slice.
 func CollectVertexes(iter VertexesIterable) []VertexId {
 	res := make([]VertexId, 10)
 	i := 0
@@ -70,15 +101,6 @@ func CollectVertexes(iter VertexesIterable) []VertexId {
 	}
 	
 	return res[0:i]
-}
-
-// Transform nodes iterable to generic iterable object.
-func VertexesToGenericIter(nodesIter VertexesIterable) Iterable {
-	return Iterable(&nodesIterableHelper{nodesIter:nodesIter})
-}
-
-func GenericToVertexesIter(iter Iterable) VertexesIterable {
-	return VertexesIterable(&nodesGenericIterableHelper{iter:iter})
 }
 
 // Build directed graph from connecection iterator with order function
@@ -97,7 +119,7 @@ func BuildDirectedGraph(gr DirectedGraph, connIterable ConnectionsIterable , isC
 
 // Copy all arcs from iterator to directed graph
 //
-// todo: add VertexesIterable interface and copy all nodes before copying arcs
+// todo: merge with CopyUndirectedGraph
 func CopyDirectedGraph(connIter ConnectionsIterable, gr DirectedGraphArcsWriter) {
 	// wheel := erx.NewError("Can't copy directed graph")
 	for arrow := range connIter.ConnectionsIter() {
@@ -119,7 +141,7 @@ func CopyUndirectedGraph(connIter ConnectionsIterable, gr UndirectedGraphEdgesWr
 
 // Copy all connections from iterator to mixed graph
 //
-// todo: add VertexesIterable interface and copy all nodes before copying connections
+// todo: merge with CopyDirectedGraph
 func CopyMixedGraph(from TypedConnectionsIterable, to MixedGraphWriter) {
 	for conn := range from.TypedConnectionsIter() {
 		switch conn.Type {
@@ -132,4 +154,85 @@ func CopyMixedGraph(from TypedConnectionsIterable, to MixedGraphWriter) {
 				panic(err)
 		}
 	}
+}
+
+// helper struct for ArcsToConnIterable
+type arcsToConnIterable_helper struct {
+	gr DirectedGraphArcsReader
+}
+
+func (helper *arcsToConnIterable_helper) ConnectionsIter() <-chan Connection {
+	return helper.gr.ArcsIter()
+}
+
+// Convert arcs iterator to connections iterator.
+func ArcsToConnIterable(gr DirectedGraphArcsReader) ConnectionsIterable {
+	return &arcsToConnIterable_helper{gr}
+}
+
+// helper struct for EdgesToConnIterable
+type edgesToConnIterable_helper struct {
+	gr UndirectedGraphEdgesReader
+}
+
+func (helper *edgesToConnIterable_helper) ConnectionsIter() <-chan Connection {
+	return helper.gr.EdgesIter()
+}
+
+// Convert edges iterator to connections iterator.
+func EdgesToConnIterable(gr UndirectedGraphEdgesReader) ConnectionsIterable {
+	return &edgesToConnIterable_helper{gr}
+}
+
+// helper struct for ArcsToTypedConnIterable
+type arcsToTypedConnIterable_helper struct {
+	gr DirectedGraphArcsReader
+}
+
+func (helper *arcsToTypedConnIterable_helper) TypedConnectionsIter() <-chan TypedConnection {
+	ch := make(chan TypedConnection)
+	go func() {
+		for conn := range helper.gr.ArcsIter() {
+			ch <- TypedConnection{Connection: conn, Type: CT_DIRECTED}
+		}
+	}()
+	return ch
+}
+
+// Convert arcs iterator to typed connections iterator.
+func ArcsToTypedConnIterable(gr DirectedGraphArcsReader) TypedConnectionsIterable {
+	return &arcsToTypedConnIterable_helper{gr}
+}
+
+// helper struct for EdgesToTypedConnIterable
+type edgesToTypedConnIterable_helper struct {
+	gr UndirectedGraphEdgesReader
+}
+
+func (helper *edgesToTypedConnIterable_helper) TypedConnectionsIter() <-chan TypedConnection {
+	ch := make(chan TypedConnection)
+	go func() {
+		for conn := range helper.gr.EdgesIter() {
+			ch <- TypedConnection{Connection: conn, Type: CT_UNDIRECTED}
+		}
+	}()
+	return ch
+}
+
+// Convert edges iterator to typed connections iterator.
+func EdgesToTypedConnIterable(gr UndirectedGraphEdgesReader) TypedConnectionsIterable {
+	return &edgesToTypedConnIterable_helper{gr}
+}
+
+
+// Vertexes iterable object for function, which returns VertexId channel.
+//
+// Internal use only at this moment. Don't know what for it could be used
+// outside.
+type nodesIterableLambdaHelper struct {
+	iterFunc func() <-chan VertexId
+}
+
+func (helper *nodesIterableLambdaHelper) VertexesIter() <-chan VertexId {
+	return helper.iterFunc()
 }

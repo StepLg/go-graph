@@ -4,13 +4,17 @@ import (
 	"github.com/StepLg/go-erx/src/erx"
 )
 
+// Connection type.
+//
+// May be undirected, directed, reversed directed (if instead of tail->head
+// connection goes from head to tail) and none (uninitialized value)
 type MixedConnectionType uint8
 
 const (
-	CT_NONE MixedConnectionType = iota
-	CT_UNDIRECTED
-	CT_DIRECTED
-	CT_DIRECTED_REVERSED
+	CT_NONE MixedConnectionType = iota // there is no connection
+	CT_UNDIRECTED // edge (undirected connection)
+	CT_DIRECTED   // arc (directed connection): from tail to head
+	CT_DIRECTED_REVERSED // arc (reversed directed connection): from head to tail
 )
 
 func (t MixedConnectionType) String() string {
@@ -24,6 +28,10 @@ func (t MixedConnectionType) String() string {
 	return "unknown"
 }
 
+// Create undirected connection (edge).
+//
+// By agreement, edge tail is the vertex with smallest id, and head is the
+// vertex with largest id.
 func NewUndirectedConnection(n1, n2 VertexId) TypedConnection {
 	if n1>n2 {
 		n1, n2 = n2, n1
@@ -37,6 +45,7 @@ func NewUndirectedConnection(n1, n2 VertexId) TypedConnection {
 	}
 }
 
+// Create directed connection (arc).
 func NewDirectedConnection(tail, head VertexId) TypedConnection {
 	return TypedConnection {
 		Connection: Connection {
@@ -68,6 +77,8 @@ func (d nodesPriority) Len() int {
 }
 
 // Vertexes priority queue
+//
+// Note: internal use only! while there is lack of standart containers in golang.
 type nodesPriorityQueue interface {
 	// Add new item to queue
 	Add(node VertexId, priority float64)
@@ -201,7 +212,17 @@ func (q *nodesPriorityQueueSimple) Empty() bool {
 	return q.Size()==0
 }
 
-func matrixConnectionsIndexer(node1, node2 VertexId, VertexIds map[VertexId]int, size int, create bool) int {
+// Index function for matrix storage.
+//
+// node1, node2 - vertexes
+// VertexIds - map with vertexes as keys and their positions in matrix as values
+// size - total size of matrix
+// craeate - flag. Set True, if you need to create indexes for vertexes, if they
+//           doesn't exist in vertexIds
+//
+// As a result function returns position of connection in one-dimential array,
+// representing upper-diagonal matrix.
+func matrixConnectionsIndexer(node1, node2 VertexId, vertexIds map[VertexId]int, size int, create bool) int {
 	defer func() {
 		if e := recover(); e!=nil {
 			err := erx.NewSequent("Calculating connection id.", e)
@@ -214,8 +235,8 @@ func matrixConnectionsIndexer(node1, node2 VertexId, VertexIds map[VertexId]int,
 	var id1, id2 int
 	node1Exist := false
 	node2Exist := false
-	id1, node1Exist = VertexIds[node1]
-	id2, node2Exist = VertexIds[node2]
+	id1, node1Exist = vertexIds[node1]
+	id2, node2Exist = vertexIds[node2]
 	
 	// checking for errors
 	{
@@ -231,11 +252,11 @@ func matrixConnectionsIndexer(node1, node2 VertexId, VertexIds map[VertexId]int,
 			}
 		} else if !node1Exist || !node2Exist {
 			if node1Exist && node2Exist {
-				if size - len(VertexIds) < 2 {
+				if size - len(vertexIds) < 2 {
 					panic(erx.NewError("Not enough space to create two new nodes."))
 				}
 			} else {
-				if size - len(VertexIds) < 1 {
+				if size - len(vertexIds) < 1 {
 					panic(erx.NewError("Not enough space to create new node."))
 				}
 			}
@@ -243,13 +264,13 @@ func matrixConnectionsIndexer(node1, node2 VertexId, VertexIds map[VertexId]int,
 	}
 	
 	if !node1Exist {
-		id1 = int(len(VertexIds))
-		VertexIds[node1] = id1
+		id1 = int(len(vertexIds))
+		vertexIds[node1] = id1
 	}
 
 	if !node2Exist {
-		id2 = int(len(VertexIds))
-		VertexIds[node2] = id2
+		id2 = int(len(vertexIds))
+		vertexIds[node2] = id2
 	}
 	
 	// switching id1, id2 in order to id1 < id2
@@ -260,73 +281,4 @@ func matrixConnectionsIndexer(node1, node2 VertexId, VertexIds map[VertexId]int,
 	// id from upper triangle matrix, stored in vector
 	connId := id1*(size-1) + id2 - 1 - id1*(id1+1)/2
 	return connId 
-}
-
-type arcsToConnIterable_helper struct {
-	gr DirectedGraphArcsReader
-}
-
-func (helper *arcsToConnIterable_helper) ConnectionsIter() <-chan Connection {
-	return helper.gr.ArcsIter()
-}
-
-func ArcsToConnIterable(gr DirectedGraphArcsReader) ConnectionsIterable {
-	return &arcsToConnIterable_helper{gr}
-}
-
-type edgesToConnIterable_helper struct {
-	gr UndirectedGraphEdgesReader
-}
-
-func (helper *edgesToConnIterable_helper) ConnectionsIter() <-chan Connection {
-	return helper.gr.EdgesIter()
-}
-
-func EdgesToConnIterable(gr UndirectedGraphEdgesReader) ConnectionsIterable {
-	return &edgesToConnIterable_helper{gr}
-}
-
-type arcsToTypedConnIterable_helper struct {
-	gr DirectedGraphArcsReader
-}
-
-func (helper *arcsToTypedConnIterable_helper) TypedConnectionsIter() <-chan TypedConnection {
-	ch := make(chan TypedConnection)
-	go func() {
-		for conn := range helper.gr.ArcsIter() {
-			ch <- TypedConnection{Connection: conn, Type: CT_DIRECTED}
-		}
-	}()
-	return ch
-}
-
-func ArcsToTypedConnIterable(gr DirectedGraphArcsReader) TypedConnectionsIterable {
-	return &arcsToTypedConnIterable_helper{gr}
-}
-
-type edgesToTypedConnIterable_helper struct {
-	gr UndirectedGraphEdgesReader
-}
-
-func (helper *edgesToTypedConnIterable_helper) TypedConnectionsIter() <-chan TypedConnection {
-	ch := make(chan TypedConnection)
-	go func() {
-		for conn := range helper.gr.EdgesIter() {
-			ch <- TypedConnection{Connection: conn, Type: CT_UNDIRECTED}
-		}
-	}()
-	return ch
-}
-
-func EdgesToTypedConnIterable(gr UndirectedGraphEdgesReader) TypedConnectionsIterable {
-	return &edgesToTypedConnIterable_helper{gr}
-}
-
-// Helper struct to create nodes iterators with lambda functions
-type nodesIterableLambdaHelper struct {
-	iterFunc func() <-chan VertexId
-}
-
-func (helper *nodesIterableLambdaHelper) VertexesIter() <-chan VertexId {
-	return helper.iterFunc()
 }

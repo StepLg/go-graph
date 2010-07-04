@@ -4,6 +4,11 @@ import (
 	"github.com/StepLg/go-erx/src/erx"
 )
 
+// Undirected graph with matrix as a internal representation.
+//
+// Doesn't allow duplicate edges and arcs, loops and reversed arcs.
+// Graph can't have more than size vertexes, where size set during initialization.
+// UndirectedMatrix use over (size^2/2) bytes.
 type UndirectedMatrix struct {
 	nodes []bool
 	size int

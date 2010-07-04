@@ -4,6 +4,9 @@ import (
 	"github.com/StepLg/go-erx/src/erx"
 )
 
+// Mixed graph with map as a internal representation.
+//
+// Doesn't allow duplicate edges and arcs.
 type MixedMap struct {
 	connections map[VertexId]map[VertexId]MixedConnectionType
 	arcsCnt int
