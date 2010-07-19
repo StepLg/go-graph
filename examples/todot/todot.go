@@ -38,6 +38,8 @@ replacing it's extension to ".dot."`)
 	flag.Parse()
 
 	if *flag_help {
+		fmt.Println(`Read graph from text representation and output it in graphviz format.`)
+		fmt.Println()
 		flag.PrintDefaults()
 		return
 	}
