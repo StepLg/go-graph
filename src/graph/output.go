@@ -89,14 +89,15 @@ func PlotVertexesToDot(nodesIter VertexesIterable, wr io.Writer, styleFunc DotNo
 // Plot graph connections to dot format.
 //
 // connIter -- iterable object over graph connections
+// separator -- string betweet two vertexes. "->" for digraph and "--" for graph in graphviz file format
 // wr -- writer interface
 // styleFunc -- style function for typed connections. For example, see SimpleConnectionStyle()
-func PlotConnectionsToDot(connIter TypedConnectionsIterable, wr io.Writer, styleFunc DotConnectionStyleFunc) {
+func PlotConnectionsToDot(connIter TypedConnectionsIterable, separator string, wr io.Writer, styleFunc DotConnectionStyleFunc) {
 	if styleFunc==nil {
 		styleFunc = SimpleConnectionStyle
 	}
 	for conn := range connIter.TypedConnectionsIter() {
-		wr.Write([]byte(fmt.Sprintf("n%v->n%v%v;\n", 
+		wr.Write([]byte(fmt.Sprintf("n%v" + separator + "n%v%v;\n", 
 			conn.Tail.String(),
 			conn.Head.String(),
 			styleMapToString(styleFunc(conn)))))
@@ -112,7 +113,7 @@ func PlotConnectionsToDot(connIter TypedConnectionsIterable, wr io.Writer, style
 func PlotDgraphToDot(gr DirectedGraphReader, wr io.Writer, nodeStyleFunc DotNodeStyleFunc, connStyleFunc DotConnectionStyleFunc) {
 	wr.Write([]byte("digraph messages {\n"))
 	PlotVertexesToDot(gr, wr, nodeStyleFunc)
-	PlotConnectionsToDot(ArcsToTypedConnIterable(gr), wr, connStyleFunc)
+	PlotConnectionsToDot(ArcsToTypedConnIterable(gr), "->", wr, connStyleFunc)
 	wr.Write([]byte("}\n"))
 }
 
@@ -125,7 +126,7 @@ func PlotDgraphToDot(gr DirectedGraphReader, wr io.Writer, nodeStyleFunc DotNode
 func PlotMgraphToDot(gr MixedGraphReader, wr io.Writer, nodeStyleFunc DotNodeStyleFunc, connStyleFunc DotConnectionStyleFunc) {
 	wr.Write([]byte("digraph messages {\n"))
 	PlotVertexesToDot(gr, wr, nodeStyleFunc)
-	PlotConnectionsToDot(gr, wr, connStyleFunc)
+	PlotConnectionsToDot(gr, "->", wr, connStyleFunc)
 	wr.Write([]byte("}\n"))
 }
 
@@ -138,6 +139,6 @@ func PlotMgraphToDot(gr MixedGraphReader, wr io.Writer, nodeStyleFunc DotNodeSty
 func PlotUgraphToDot(gr UndirectedGraphReader, wr io.Writer, nodeStyleFunc DotNodeStyleFunc, connStyleFunc DotConnectionStyleFunc) {
 	wr.Write([]byte("graph messages {\n"))
 	PlotVertexesToDot(gr, wr, nodeStyleFunc)
-	PlotConnectionsToDot(EdgesToTypedConnIterable(gr), wr, connStyleFunc)
+	PlotConnectionsToDot(EdgesToTypedConnIterable(gr), "--", wr, connStyleFunc)
 	wr.Write([]byte("}\n"))
 }
