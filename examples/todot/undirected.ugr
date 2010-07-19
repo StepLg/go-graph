@@ -1,0 +1,6 @@
+# simple undirected graph
+1               # dangle vertex
+2 3             # edge between new vertexes
+4-5             # or we can specify edge with hyphen instead of space
+3 5             # edge between existing vertexes
+2 4 6 8         # more than one edge in one line

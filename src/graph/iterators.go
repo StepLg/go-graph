@@ -195,6 +195,7 @@ func (helper *arcsToTypedConnIterable_helper) TypedConnectionsIter() <-chan Type
 		for conn := range helper.gr.ArcsIter() {
 			ch <- TypedConnection{Connection: conn, Type: CT_DIRECTED}
 		}
+		close(ch)
 	}()
 	return ch
 }
@@ -215,6 +216,7 @@ func (helper *edgesToTypedConnIterable_helper) TypedConnectionsIter() <-chan Typ
 		for conn := range helper.gr.EdgesIter() {
 			ch <- TypedConnection{Connection: conn, Type: CT_UNDIRECTED}
 		}
+		close(ch)
 	}()
 	return ch
 }

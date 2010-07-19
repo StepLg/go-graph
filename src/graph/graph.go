@@ -95,6 +95,11 @@ type DirectedGraphReader interface {
 	VertexesIterable
 }
 
+type DirectedGraphWriter interface {
+	GraphVertexesWriter
+	DirectedGraphArcsWriter
+}
+
 // Interface representing directed graph
 type DirectedGraph interface {
 	GraphVertexesWriter
@@ -138,6 +143,11 @@ type UndirectedGraphReader interface {
 	UndirectedGraphEdgesReader
 	ConnectionsIterable
 	VertexesIterable
+}
+
+type UndirectedGraphWriter interface {
+	GraphVertexesWriter
+	UndirectedGraphEdgesWriter
 }
 
 // Interface representing undirected graph

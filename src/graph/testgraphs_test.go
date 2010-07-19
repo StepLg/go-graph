@@ -29,14 +29,14 @@ func generateDirectedGraph1() DirectedGraph {
 
 func genDgr2IndependentSubGr() (DirectedGraphReader, DirectedGraphReader, DirectedGraphReader) {
 	gr1 := NewDirectedMap()
-	ReadArcsLine(gr1, "1-2-3-4")
-	ReadArcsLine(gr1, "2-6")
-	ReadArcsLine(gr1, "5-4-2")
+	ReadDgraphLine(gr1, "1>2>3>4")
+	ReadDgraphLine(gr1, "2>6")
+	ReadDgraphLine(gr1, "5>4>2")
 	
 	gr2 := NewDirectedMap()
-	ReadArcsLine(gr2, "10-11-12")
-	ReadArcsLine(gr2, "14-13-11")
-	ReadArcsLine(gr2, "15-12-16-17")
+	ReadDgraphLine(gr2, "10>11>12")
+	ReadDgraphLine(gr2, "14>13>11")
+	ReadDgraphLine(gr2, "15>12>16>17")
 	
 	gr_merged := NewDirectedMap()
 	CopyDirectedGraph(gr1, gr_merged)
@@ -47,14 +47,14 @@ func genDgr2IndependentSubGr() (DirectedGraphReader, DirectedGraphReader, Direct
 
 func genUgr2IndependentSubGr() (UndirectedGraphReader, UndirectedGraphReader, UndirectedGraphReader) {
 	gr1 := NewUndirectedMap()
-	ReadEdgesLine(gr1, "1-2-3-4")
-	ReadEdgesLine(gr1, "2-6")
-	ReadEdgesLine(gr1, "5-4-2")
+	ReadUgraphLine(gr1, "1-2-3-4")
+	ReadUgraphLine(gr1, "2-6")
+	ReadUgraphLine(gr1, "5-4-2")
 	
 	gr2 := NewUndirectedMap()
-	ReadEdgesLine(gr2, "10-11-12")
-	ReadEdgesLine(gr2, "14-13-11")
-	ReadEdgesLine(gr2, "15-12-16-17")
+	ReadUgraphLine(gr2, "10-11-12")
+	ReadUgraphLine(gr2, "14-13-11")
+	ReadUgraphLine(gr2, "15-12-16-17")
 	
 	gr_merged := NewUndirectedMap()
 	CopyUndirectedGraph(gr1, gr_merged)

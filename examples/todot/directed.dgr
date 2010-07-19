@@ -1,0 +1,6 @@
+# simple undirected graph
+1               # dangle vertex
+2 3             # arc between new vertexes
+4>5             # or we can specify arc with hyphen instead of space
+3 5             # arc between existing vertexes
+2 4 6 8         # more than one arc in one line

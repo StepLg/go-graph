@@ -2,7 +2,7 @@ package graph
 
 import (
 	"fmt"
-	"os"
+	"io"
 	"strings"
 	"strconv"
 )
@@ -15,6 +15,14 @@ func (conn Connection) String() string {
 	return fmt.Sprintf("%v->%v", conn.Tail, conn.Head)
 }
 
+// Typed connection as a string.
+//
+// Format:
+//  * 1--2 for undirected connection
+//  * 1->2 for directed connection
+//  * 1<-2 for reversed directed connection
+//  * 1><2 if there is no connection between 1 and 2
+//  * 1!!2 for unexpected error (if function can't recognize connection type) 
 func (conn TypedConnection) String() string {
 	switch conn.Type {
 		case CT_UNDIRECTED:
@@ -27,42 +35,6 @@ func (conn TypedConnection) String() string {
 			return fmt.Sprintf("%v><%v", conn.Tail, conn.Head)
 	}
 	return fmt.Sprintf("%v!!%v", conn.Tail, conn.Head)
-}
-
-type IWriter interface {
-	Write(s string)
-}
-
-type StringWriter struct {
-	Str string
-}
-
-func (wr *StringWriter) Write(s string) {
-	wr.Str += s
-}
-
-type IOsStringWriter interface {
-	WriteString(s string) (ret int, err os.Error)
-}
-
-type IoWriterAdapter struct {
-	writer IOsStringWriter
-}
-
-func NewIoWriter(writer IOsStringWriter) *IoWriterAdapter {
-	return &IoWriterAdapter{writer}
-}
-
-func (wr *IoWriterAdapter) Write(s string) {
-	slen := len(s)
-	wrote := 0
-	for wrote<slen {
-		curWrote, err := wr.writer.WriteString(s[wrote:])
-		if err!=nil {
-			panic(err)
-		}
-		wrote += curWrote
-	}
 }
 
 func styleMapToString(style map[string]string) string {
@@ -78,41 +50,94 @@ func styleMapToString(style map[string]string) string {
 type DotNodeStyleFunc func(node VertexId) map[string]string
 type DotConnectionStyleFunc func(conn TypedConnection) map[string]string
 
+// Basic dot style function for vertexes.
+//
+// Generates only one style property: vertex label, which match vertex id.
 func SimpleNodeStyle(node VertexId) map[string]string {
 	style := make(map[string]string)
 	style["label"] = node.String()
 	return style
 }
 
-func SimpleArcStyle(conn Connection) map[string]string {
-	return make(map[string]string)
+// Basic dot style function for connections.
+//
+// Empty style, except undirected connection. For undirected connection 
+// "dir=both" style is set.
+func SimpleConnectionStyle(conn TypedConnection) map[string]string {
+	res := make(map[string]string)
+	if conn.Type==CT_UNDIRECTED {
+		// for undirected connection by default set "both" direction
+		res["dir"] = "both"
+	}
+	return res
 }
 
-func PlotVertexesToDot(nodesIter VertexesIterable, wr IWriter, styleFunc DotNodeStyleFunc) {
+// Plot graph vertexes to dot format.
+//
+// nodesIter -- iterable object over graph vertexes
+// wr -- writer interface
+// styleFunc -- style function for vertexes. For example, see SimpleNodeStyle()
+func PlotVertexesToDot(nodesIter VertexesIterable, wr io.Writer, styleFunc DotNodeStyleFunc) {
+	if styleFunc==nil {
+		styleFunc = SimpleNodeStyle
+	}
 	for node := range nodesIter.VertexesIter() {
-		wr.Write("n" + node.String() + styleMapToString(styleFunc(node)) + ";\n")
+		wr.Write([]byte("n" + node.String() + styleMapToString(styleFunc(node)) + ";\n"))
 	}
 }
 
-func PlotArcsToDot(connIter TypedConnectionsIterable, wr IWriter, styleFunc DotConnectionStyleFunc) {
+// Plot graph connections to dot format.
+//
+// connIter -- iterable object over graph connections
+// wr -- writer interface
+// styleFunc -- style function for typed connections. For example, see SimpleConnectionStyle()
+func PlotConnectionsToDot(connIter TypedConnectionsIterable, wr io.Writer, styleFunc DotConnectionStyleFunc) {
+	if styleFunc==nil {
+		styleFunc = SimpleConnectionStyle
+	}
 	for conn := range connIter.TypedConnectionsIter() {
-		wr.Write(fmt.Sprintf("n%v->n%v%v;\n", 
+		wr.Write([]byte(fmt.Sprintf("n%v->n%v%v;\n", 
 			conn.Tail.String(),
 			conn.Head.String(),
-			styleMapToString(styleFunc(conn))))
+			styleMapToString(styleFunc(conn)))))
 	}
 }
 
-func PlotDirectedGraphToDot(gr DirectedGraphReader, wr IWriter, nodeStyleFunc DotNodeStyleFunc, arcStyleFunc DotConnectionStyleFunc) {
-	wr.Write("digraph messages {\n")
+// Plot directed graph to dot format.
+//
+// gr -- directed graph interface
+// wr -- writer interface
+// nodeStyleFunc -- style function for vertexes. For example, see SimpleNodeStyle()
+// connStyleFunc -- style function for typed connections. For example, see SimpleConnectionStyle()
+func PlotDgraphToDot(gr DirectedGraphReader, wr io.Writer, nodeStyleFunc DotNodeStyleFunc, connStyleFunc DotConnectionStyleFunc) {
+	wr.Write([]byte("digraph messages {\n"))
 	PlotVertexesToDot(gr, wr, nodeStyleFunc)
-	PlotArcsToDot(ArcsToTypedConnIterable(gr), wr, arcStyleFunc)
-	wr.Write("}\n")
+	PlotConnectionsToDot(ArcsToTypedConnIterable(gr), wr, connStyleFunc)
+	wr.Write([]byte("}\n"))
 }
 
-func PlotMixedGraphToDot(gr MixedGraph, wr IWriter, nodeStyleFunc DotNodeStyleFunc, connStyleFunc DotConnectionStyleFunc) {
-	wr.Write("digraph messages {\n")
+// Plot mixed graph to dot format.
+//
+// gr -- directed graph interface
+// wr -- writer interface
+// nodeStyleFunc -- style function for vertexes. For example, see SimpleNodeStyle()
+// connStyleFunc -- style function for typed connections. For example, see SimpleConnectionStyle()
+func PlotMgraphToDot(gr MixedGraphReader, wr io.Writer, nodeStyleFunc DotNodeStyleFunc, connStyleFunc DotConnectionStyleFunc) {
+	wr.Write([]byte("digraph messages {\n"))
 	PlotVertexesToDot(gr, wr, nodeStyleFunc)
-	PlotArcsToDot(gr, wr, connStyleFunc)
-	wr.Write("}\n")
+	PlotConnectionsToDot(gr, wr, connStyleFunc)
+	wr.Write([]byte("}\n"))
+}
+
+// Plot undirected graph to dot format.
+//
+// gr -- directed graph interface
+// wr -- writer interface
+// nodeStyleFunc -- style function for vertexes. For example, see SimpleNodeStyle()
+// connStyleFunc -- style function for typed connections. For example, see SimpleConnectionStyle()
+func PlotUgraphToDot(gr UndirectedGraphReader, wr io.Writer, nodeStyleFunc DotNodeStyleFunc, connStyleFunc DotConnectionStyleFunc) {
+	wr.Write([]byte("graph messages {\n"))
+	PlotVertexesToDot(gr, wr, nodeStyleFunc)
+	PlotConnectionsToDot(EdgesToTypedConnIterable(gr), wr, connStyleFunc)
+	wr.Write([]byte("}\n"))
 }
