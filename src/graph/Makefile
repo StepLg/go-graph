@@ -1,6 +1,6 @@
-include $(GOROOT)/src/Make.$(GOARCH)
- 
-TARG=graph
+include $(GOROOT)/src/Make.inc
+
+TARG=github.com/StepLg/go-graph/src/graph
 GOFILES=                    \
 	algorithms.go           \
 	comparators.go          \
