@@ -157,26 +157,6 @@ func (g *UndirectedMap) EdgesCnt() int {
 	return g.edgesCnt
 }
 
-// Getting node predecessors
-func (g *UndirectedMap) GetNeighbours(node VertexId) VertexesIterable {
-	iterator := func() <-chan VertexId {
-		ch := make(chan VertexId)
-		go func() {
-			if connectedMap, ok := g.edges[node]; ok {
-				for VertexId, _ := range connectedMap {
-					ch <- VertexId
-				}
-			} else {
-				panic(erx.NewError("Node doesn't exists."))
-			}
-			close(ch)
-		}()
-		return ch
-	}
-	
-	return VertexesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
-}
-
 func (g *UndirectedMap) CheckEdge(from, to VertexId) (isExist bool) {
 	makeError := func(err interface{}) (res erx.Error) {
 		res = erx.NewSequentLevel("Check edge existance in graph.", err, 1)

@@ -104,19 +104,6 @@ func PlotConnectionsToDot(connIter TypedConnectionsIterable, separator string, w
 	}
 }
 
-// Plot directed graph to dot format.
-//
-// gr -- directed graph interface
-// wr -- writer interface
-// nodeStyleFunc -- style function for vertexes. For example, see SimpleNodeStyle()
-// connStyleFunc -- style function for typed connections. For example, see SimpleConnectionStyle()
-func PlotDgraphToDot(gr DirectedGraphReader, wr io.Writer, nodeStyleFunc DotNodeStyleFunc, connStyleFunc DotConnectionStyleFunc) {
-	wr.Write([]byte("digraph messages {\n"))
-	PlotVertexesToDot(gr, wr, nodeStyleFunc)
-	PlotConnectionsToDot(ArcsToTypedConnIterable(gr), "->", wr, connStyleFunc)
-	wr.Write([]byte("}\n"))
-}
-
 // Plot mixed graph to dot format.
 //
 // gr -- directed graph interface
@@ -130,15 +117,3 @@ func PlotMgraphToDot(gr MixedGraphReader, wr io.Writer, nodeStyleFunc DotNodeSty
 	wr.Write([]byte("}\n"))
 }
 
-// Plot undirected graph to dot format.
-//
-// gr -- directed graph interface
-// wr -- writer interface
-// nodeStyleFunc -- style function for vertexes. For example, see SimpleNodeStyle()
-// connStyleFunc -- style function for typed connections. For example, see SimpleConnectionStyle()
-func PlotUgraphToDot(gr UndirectedGraphReader, wr io.Writer, nodeStyleFunc DotNodeStyleFunc, connStyleFunc DotConnectionStyleFunc) {
-	wr.Write([]byte("graph messages {\n"))
-	PlotVertexesToDot(gr, wr, nodeStyleFunc)
-	PlotConnectionsToDot(EdgesToTypedConnIterable(gr), "--", wr, connStyleFunc)
-	wr.Write([]byte("}\n"))
-}

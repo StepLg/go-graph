@@ -178,36 +178,6 @@ func (g *UndirectedMatrix) EdgesCnt() int {
 }
 
 
-// Getting all nodes, connected to given one
-func (g *UndirectedMatrix) GetNeighbours(node VertexId) VertexesIterable {
-	iterator := func() <-chan VertexId {
-		ch := make(chan VertexId)
-		go func() {
-
-			if _, ok := g.VertexIds[node]; !ok {
-				panic(erx.NewError("Unknown node."))
-			}
-
-			var connId int
-			for aNode, _ := range g.VertexIds {
-				if aNode==node {
-					continue
-				}
-				connId= g.getConnectionId(node, aNode, false)
-				
-				if g.nodes[connId] {
-					ch <- aNode
-				}
-			}
-	
-			close(ch)
-		}()
-		return ch
-	}
-	
-	return VertexesIterable(&nodesIterableLambdaHelper{iterFunc:iterator})
-}
-
 func (g *UndirectedMatrix) EdgesIter() <-chan Connection {
 	ch := make(chan Connection)
 	go func() {

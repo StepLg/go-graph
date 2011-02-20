@@ -8,10 +8,8 @@ GOFILES=                    \
 	filters.go              \
 	graph.go                \
 	input.go                \
-	iterators.go            \
 	MixedMap.go             \
 	MixedMatrix.go          \
-	neighbours_extractor.go \
 	output.go               \
 	search.go               \
 	stuff.go                \
